@@ -1,0 +1,356 @@
+{
+  "uid": "demobank-loan-eligibility",
+  "title": "DemoBank Loan Eligibility Assistant",
+  "description": "Educational demonstration. Synthetic data only. Decisions, policy versions, retrieval, explanation quality and audit health.",
+  "tags": ["demobank", "eligibility", "capstone"],
+  "timezone": "browser",
+  "editable": true,
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {"from": "now-6h", "to": "now"},
+  "templating": {
+    "list": [
+      {
+        "name": "policy_version",
+        "label": "Policy version",
+        "type": "query",
+        "datasource": {"type": "prometheus", "uid": "demobank-prometheus"},
+        "query": "label_values(demobank_eligibility_decisions_total, policy_version)",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 2,
+        "current": {"text": "All", "value": "$__all"}
+      },
+      {
+        "name": "product",
+        "label": "Product",
+        "type": "query",
+        "datasource": {"type": "prometheus", "uid": "demobank-prometheus"},
+        "query": "label_values(demobank_eligibility_decisions_total, product)",
+        "includeAll": true,
+        "multi": true,
+        "refresh": 2,
+        "current": {"text": "All", "value": "$__all"}
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "Decisions",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 1,
+      "type": "piechart",
+      "title": "Outcomes",
+      "description": "Deterministic outcomes produced by the rule engine.",
+      "datasource": {"type": "prometheus", "uid": "demobank-prometheus"},
+      "gridPos": {"h": 8, "w": 7, "x": 0, "y": 1},
+      "options": {
+        "legend": {"displayMode": "table", "placement": "right", "showLegend": true, "values": ["value"]},
+        "pieType": "donut",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (outcome) (increase(demobank_eligibility_decisions_total{policy_version=~\"$policy_version\", product=~\"$product\"}[$__range]))",
+          "legendFormat": "{{outcome}}",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Decision rate by outcome",
+      "datasource": {"type": "prometheus", "uid": "demobank-prometheus"},
+      "gridPos": {"h": 8, "w": 10, "x": 7, "y": 1},
+      "fieldConfig": {
+        "defaults": {"unit": "reqps", "custom": {"fillOpacity": 15, "stacking": {"mode": "normal"}}},
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (outcome) (rate(demobank_eligibility_decisions_total{policy_version=~\"$policy_version\", product=~\"$product\"}[5m]))",
+          "legendFormat": "{{outcome}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "piechart",
+      "title": "Policy version applied",
+      "description": "Which version of the synthetic DemoBank policy was in force for each enquiry.",
+      "datasource": {"type": "prometheus", "uid": "demobank-prometheus"},
+      "gridPos": {"h": 8, "w": 7, "x": 17, "y": 1},
+      "options": {
+        "legend": {"displayMode": "table", "placement": "right", "showLegend": true, "values": ["value"]},
+        "pieType": "pie",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (policy_version, resolution) (increase(demobank_policy_version_applied_total[$__range]))",
+          "legendFormat": "v{{policy_version}} ({{resolution}})",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Criteria",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 9},
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 4,
+      "type": "barchart",
+      "title": "Top failing criteria",
+      "description": "Which policy clauses actually drive declines and referrals.",
+      "datasource": {"type": "prometheus", "uid": "demobank-prometheus"},
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 10},
+      "fieldConfig": {"defaults": {"custom": {"orientation": "horizontal"}}, "overrides": []},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (rule_id) (increase(demobank_rule_failures_total{policy_version=~\"$policy_version\"}[$__range])))",
+          "legendFormat": "{{rule_id}}",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "table",
+      "title": "Criterion outcomes by status",
+      "datasource": {"type": "prometheus", "uid": "demobank-prometheus"},
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 10},
+      "options": {"showHeader": true},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (rule_id, status, severity) (increase(demobank_rule_evaluations_total{policy_version=~\"$policy_version\"}[$__range]))",
+          "format": "table",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Explanation quality",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 19},
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Guardrail violations",
+      "description": "Generated explanations that contradicted the deterministic decision and were replaced. Target: zero.",
+      "datasource": {"type": "prometheus", "uid": "demobank-prometheus"},
+      "gridPos": {"h": 6, "w": 5, "x": 0, "y": 20},
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "red", "value": 1}
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "background"},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(demobank_guardrail_violations_total[$__range])) or vector(0)",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Guardrail pass rate",
+      "datasource": {"type": "prometheus", "uid": "demobank-prometheus"},
+      "gridPos": {"h": 6, "w": 5, "x": 5, "y": 20},
+      "fieldConfig": {"defaults": {"unit": "percentunit", "min": 0, "max": 1}, "overrides": []},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(demobank_guardrail_checks_total{result=\"pass\"}[$__range])) / clamp_min(sum(increase(demobank_guardrail_checks_total[$__range])), 1)",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Explanation stream latency (p95) by mode",
+      "datasource": {"type": "prometheus", "uid": "demobank-prometheus"},
+      "gridPos": {"h": 6, "w": 7, "x": 10, "y": 20},
+      "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le, mode) (rate(demobank_llm_stream_duration_seconds_bucket[5m])))",
+          "legendFormat": "{{mode}}"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Claude tokens per minute",
+      "datasource": {"type": "prometheus", "uid": "demobank-prometheus"},
+      "gridPos": {"h": 6, "w": 7, "x": 17, "y": 20},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (direction) (rate(demobank_llm_tokens_total[5m])) * 60",
+          "legendFormat": "{{direction}}"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(rate(demobank_llm_fallbacks_total[5m])) * 60",
+          "legendFormat": "fallbacks/min"
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Retrieval and extraction",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 26},
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "Indexed clauses per policy version",
+      "datasource": {"type": "prometheus", "uid": "demobank-prometheus"},
+      "gridPos": {"h": 6, "w": 6, "x": 0, "y": 27},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "demobank_policy_index_chunks",
+          "legendFormat": "v{{policy_version}}",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Retrieval latency (p95) by policy version",
+      "datasource": {"type": "prometheus", "uid": "demobank-prometheus"},
+      "gridPos": {"h": 6, "w": 9, "x": 6, "y": 27},
+      "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le, policy_version) (rate(demobank_rag_retrieval_duration_seconds_bucket[5m])))",
+          "legendFormat": "v{{policy_version}}"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(rate(demobank_rag_empty_retrievals_total[5m])) * 60",
+          "legendFormat": "empty retrievals/min"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "barchart",
+      "title": "Applicant fields missing after extraction",
+      "datasource": {"type": "prometheus", "uid": "demobank-prometheus"},
+      "gridPos": {"h": 6, "w": 9, "x": 15, "y": 27},
+      "fieldConfig": {"defaults": {"custom": {"orientation": "horizontal"}}, "overrides": []},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(8, sum by (field) (increase(demobank_extraction_fields_total{result=\"missing\"}[$__range])))",
+          "legendFormat": "{{field}}",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Service health and audit",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 33},
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "HTTP latency (p50 / p95) on decision routes",
+      "datasource": {"type": "prometheus", "uid": "demobank-prometheus"},
+      "gridPos": {"h": 7, "w": 9, "x": 0, "y": 34},
+      "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(demobank_http_request_duration_seconds_bucket{route=~\"/eligibility.*|/chat.*\"}[5m])))",
+          "legendFormat": "p50"
+        },
+        {
+          "refId": "B",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(demobank_http_request_duration_seconds_bucket{route=~\"/eligibility.*|/chat.*\"}[5m])))",
+          "legendFormat": "p95"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "Requests by status",
+      "datasource": {"type": "prometheus", "uid": "demobank-prometheus"},
+      "gridPos": {"h": 7, "w": 9, "x": 9, "y": 34},
+      "fieldConfig": {"defaults": {"unit": "reqps"}, "overrides": []},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (status) (rate(demobank_http_requests_total[5m]))",
+          "legendFormat": "{{status}}"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "type": "stat",
+      "title": "Audit records written",
+      "description": "Every decision must produce exactly one audit record (DOC-5.1).",
+      "datasource": {"type": "prometheus", "uid": "demobank-prometheus"},
+      "gridPos": {"h": 7, "w": 6, "x": 18, "y": 34},
+      "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(demobank_audit_records_total[$__range])) or vector(0)",
+          "legendFormat": "records",
+          "instant": true
+        },
+        {
+          "refId": "B",
+          "expr": "sum(increase(demobank_audit_write_errors_total[$__range])) or vector(0)",
+          "legendFormat": "write errors",
+          "instant": true
+        }
+      ]
+    }
+  ]
+}

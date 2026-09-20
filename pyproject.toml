@@ -1,0 +1,38 @@
+[project]
+name = "demobank-loan-eligibility-assistant"
+version = "1.0.0"
+description = "Educational capstone: streaming conversational loan eligibility assistant with a deterministic, versioned rule engine (synthetic DemoBank data only)."
+requires-python = ">=3.11"
+readme = "README.md"
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-q --strict-markers"
+filterwarnings = ["ignore::DeprecationWarning"]
+markers = [
+    "slow: tests that exercise an optional heavy dependency",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = ["var", ".venv", "promptfoo/output"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = [
+    "E501",   # line length is handled by the formatter
+    "B008",   # FastAPI dependency defaults in signatures
+    "UP038",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E402", "B011"]
+"scripts/*" = ["E402"]
+"promptfoo/*" = ["E402"]
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["app/main.py"]

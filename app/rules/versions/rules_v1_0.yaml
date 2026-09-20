@@ -1,0 +1,830 @@
+# =====================================================================
+# DEMO BANK - SYNTHETIC RULE PACK - FOR EDUCATIONAL USE ONLY
+# Machine-readable encoding of the DemoBank policy corpus version 1.0.
+# Every rule must cite the synthetic policy clause that authorises it.
+# =====================================================================
+policy_version: "1.0"
+title: DemoBank Retail Credit Policy v1.0
+status: superseded
+effective_from: "2023-01-01"
+effective_to: "2025-06-30"
+summary: >-
+  Original DemoBank pre-qualification policy. Superseded on 1 July 2025 by
+  version 2.0, which tightened credit score, affordability and loan-to-value
+  criteria.
+change_log:
+  - "Initial published version of the synthetic DemoBank policy corpus."
+documents:
+  - DB-PL
+  - DB-MG
+  - DB-AL
+  - DB-CR
+  - DB-DOC
+
+products:
+  # ==================================================================
+  PERSONAL_LOAN:
+    display_name: Unsecured Personal Loan
+    assumptions:
+      annual_interest_rate: 0.129
+      default_term_months: 60
+      stress_rate_increase: 0.02
+    limits:
+      min_amount: 2000
+      max_amount: 50000
+      income_multiple: 5.0
+      max_dti: 0.45
+    rules:
+      - id: PL-2.1-AGE
+        title: Applicant age within product range
+        category: identity
+        severity: HARD
+        threshold: "21 to 70 years"
+        observe: [age]
+        condition:
+          all_of:
+            - {field: age, op: gte, value: 21, label: Applicant age}
+            - {field: age, op: lte, value: 70, label: Applicant age}
+        policy_reference:
+          document_id: DB-PL
+          document_title: DemoBank Unsecured Personal Loan Eligibility Policy
+          section: PL-2.1
+          quote: "The applicant must be at least 21 years of age and no more than 70 years of age at the date of application."
+        message_pass: "Applicant age is inside the 21 to 70 range required for this product."
+        message_fail: "Applicant age is outside the 21 to 70 range required for this product."
+        message_unknown: "Applicant age is needed before the age criterion can be assessed."
+        remediation: "Confirm the applicant's date of birth."
+
+      - id: PL-2.2-RESIDENCY
+        title: Eligible residency status
+        category: identity
+        severity: HARD
+        threshold: "Citizen, permanent resident or long-term visa holder"
+        observe: [residency_status]
+        condition:
+          field: residency_status
+          op: in
+          value: [CITIZEN, PERMANENT_RESIDENT, LONG_TERM_VISA]
+          label: Residency status
+        policy_reference:
+          document_id: DB-PL
+          document_title: DemoBank Unsecured Personal Loan Eligibility Policy
+          section: PL-2.2
+          quote: "The applicant must hold one of the following residency statuses: citizen, permanent resident, long-term visa holder."
+        message_pass: "Residency status is eligible for this product."
+        message_fail: "Short-term visa holders and non-residents are not eligible for this product under policy version 1.0."
+        message_unknown: "Residency status is needed before this criterion can be assessed."
+
+      - id: PL-3.1-MIN-INCOME
+        title: Minimum gross annual income
+        category: income
+        severity: HARD
+        threshold: 24000
+        observe: [gross_annual_income]
+        condition:
+          field: gross_annual_income
+          op: gte
+          value: 24000
+          label: Gross verifiable annual income
+        policy_reference:
+          document_id: DB-PL
+          document_title: DemoBank Unsecured Personal Loan Eligibility Policy
+          section: PL-3.1
+          quote: "Gross verifiable annual income must be at least 24,000 currency units."
+        message_pass: "Income meets the minimum of 24,000 for this product."
+        message_fail: "Income is below the minimum of 24,000 required for this product."
+        message_unknown: "Gross annual income is needed before the income criterion can be assessed."
+
+      - id: PL-3.2-EMPLOYMENT
+        title: Employment category and tenure
+        category: employment
+        severity: HARD
+        threshold: "Eligible employment category with at least 6 months tenure"
+        observe: [employment_status, employment_months]
+        condition:
+          all_of:
+            - field: employment_status
+              op: in
+              value: [FULL_TIME, PART_TIME, SELF_EMPLOYED, CONTRACT]
+              label: Employment status
+            - field: employment_months
+              op: gte
+              value: 6
+              label: Months in current employment
+        policy_reference:
+          document_id: DB-PL
+          document_title: DemoBank Unsecured Personal Loan Eligibility Policy
+          section: PL-3.2
+          quote: "The applicant must be in full time, part time, self employed or contract work and must have been in the current arrangement for at least 6 consecutive months."
+        message_pass: "Employment category and tenure meet the policy version 1.0 requirement of 6 months."
+        message_fail: "Employment category or tenure does not meet the policy version 1.0 requirement of 6 months."
+        message_unknown: "Employment status and tenure are needed before this criterion can be assessed."
+
+      - id: PL-3.4-SELF-EMPLOYED-HISTORY
+        title: Self-employed trading history
+        category: employment
+        severity: SOFT
+        threshold: 24
+        observe: [employment_status, employment_months]
+        applies_when:
+          field: employment_status
+          op: eq
+          value: SELF_EMPLOYED
+          label: Employment status
+        condition:
+          field: employment_months
+          op: gte
+          value: 24
+          label: Months of trading history
+        policy_reference:
+          document_id: DB-PL
+          document_title: DemoBank Unsecured Personal Loan Eligibility Policy
+          section: PL-3.4
+          quote: "Where the applicant is self employed, a trading history of at least 24 months is expected. A shorter trading history results in referral to a credit officer."
+        message_pass: "Self-employed trading history meets the 24 month expectation."
+        message_fail: "Self-employed trading history is under 24 months, so the enquiry is referred to a credit officer."
+        remediation: "Supply trading accounts covering the available trading period."
+
+      - id: PL-4.1-AMOUNT-RANGE
+        title: Requested amount within product range
+        category: facility
+        severity: HARD
+        threshold: "2,000 to 50,000"
+        observe: [requested_amount]
+        condition:
+          all_of:
+            - {field: requested_amount, op: gte, value: 2000, label: Requested amount}
+            - {field: requested_amount, op: lte, value: 50000, label: Requested amount}
+        policy_reference:
+          document_id: DB-PL
+          document_title: DemoBank Unsecured Personal Loan Eligibility Policy
+          section: PL-4.1
+          quote: "The Unsecured Personal Loan is offered between 2,000 and 50,000 currency units."
+        message_pass: "Requested amount is inside the product range of 2,000 to 50,000."
+        message_fail: "Requested amount is outside the product range of 2,000 to 50,000 under policy version 1.0."
+        message_unknown: "A requested amount is needed before this criterion can be assessed."
+
+      - id: PL-4.2-INCOME-MULTIPLE
+        title: Income multiple cap
+        category: affordability
+        severity: HARD
+        threshold: 5.0
+        observe: [income_multiple_used, gross_annual_income, requested_amount]
+        condition:
+          field: income_multiple_used
+          op: lte
+          value: 5.0
+          label: Requested amount as a multiple of annual income
+        policy_reference:
+          document_id: DB-PL
+          document_title: DemoBank Unsecured Personal Loan Eligibility Policy
+          section: PL-4.2
+          quote: "The requested loan amount must not exceed 5.0 times gross verifiable annual income."
+        message_pass: "Requested amount is within 5.0 times annual income."
+        message_fail: "Requested amount exceeds 5.0 times annual income, the cap under policy version 1.0."
+        message_unknown: "Income and requested amount are both needed before the income multiple can be assessed."
+
+      - id: CR-2.1-CREDIT-SCORE
+        title: Minimum internal credit score
+        category: credit
+        severity: HARD
+        threshold: 640
+        observe: [credit_score]
+        condition:
+          field: credit_score
+          op: gte
+          value: 640
+          label: Internal credit score
+        policy_reference:
+          document_id: DB-CR
+          document_title: DemoBank Credit and Affordability Standards
+          section: CR-2.1
+          quote: "Minimum score for pre-qualification of an Unsecured Personal Loan under version 1.0 is 640."
+        message_pass: "Internal credit score meets the policy version 1.0 minimum of 640."
+        message_fail: "Internal credit score is below the policy version 1.0 minimum of 640."
+        message_unknown: "No internal credit score is available, so this criterion cannot be assessed. Under CR-2.2 this is recorded as insufficient information and never as a decline."
+        remediation: "Complete a full application so that an internal credit score can be produced."
+
+      - id: CR-2.3-CREDIT-HISTORY
+        title: Credit history depth
+        category: credit
+        severity: SOFT
+        threshold: 24
+        observe: [credit_history_months]
+        condition:
+          field: credit_history_months
+          op: gte
+          value: 24
+          label: Months of credit history
+        policy_reference:
+          document_id: DB-CR
+          document_title: DemoBank Credit and Affordability Standards
+          section: CR-2.3
+          quote: "A credit history of at least 24 months is expected. A shorter history is a supporting criterion failure, producing referral for thin-file assessment rather than a decline."
+        message_pass: "Credit history depth meets the 24 month expectation."
+        message_fail: "Credit history is shorter than 24 months, so the enquiry is referred for thin-file assessment."
+        remediation: "Refer to a credit officer for thin-file assessment."
+
+      - id: CR-3.1-DTI
+        title: Maximum debt-to-income ratio
+        category: affordability
+        severity: HARD
+        threshold: 0.45
+        observe: [dti_ratio, monthly_income, total_monthly_obligations, estimated_monthly_payment]
+        condition:
+          field: dti_ratio
+          op: lte
+          value: 0.45
+          label: Debt-to-income ratio
+        policy_reference:
+          document_id: DB-CR
+          document_title: DemoBank Credit and Affordability Standards
+          section: CR-3.1
+          quote: "Maximum debt-to-income ratio for the Unsecured Personal Loan under version 1.0 is 45%."
+        message_pass: "Debt-to-income ratio including the indicative repayment is within the 45% maximum."
+        message_fail: "Debt-to-income ratio including the indicative repayment exceeds the 45% maximum under policy version 1.0."
+        message_unknown: "Income and existing monthly commitments are needed before affordability can be assessed."
+        remediation: "Reduce the requested amount, extend the term, or reduce existing monthly commitments."
+
+      - id: CR-4.1-BANKRUPTCY
+        title: Bankruptcy discharge period
+        category: credit
+        severity: HARD
+        threshold: "Discharged at least 5 years ago"
+        observe: [has_prior_bankruptcy, years_since_bankruptcy]
+        condition:
+          any_of:
+            - {field: has_prior_bankruptcy, op: is_false, label: Prior bankruptcy recorded}
+            - {field: years_since_bankruptcy, op: gte, value: 5, label: Years since discharge}
+        policy_reference:
+          document_id: DB-CR
+          document_title: DemoBank Credit and Affordability Standards
+          section: CR-4.1
+          quote: "An applicant with a prior bankruptcy may be pre-qualified only where the arrangement was discharged at least 5 years before the date of enquiry."
+        message_pass: "No bankruptcy restriction applies."
+        message_fail: "A bankruptcy or insolvency arrangement discharged less than 5 years ago blocks pre-qualification under policy version 1.0."
+        message_unknown: "Confirmation of any prior bankruptcy and its discharge date is needed before this criterion can be assessed."
+
+      - id: CR-4.2-ACTIVE-DEFAULTS
+        title: No active defaults
+        category: credit
+        severity: SOFT
+        threshold: 0
+        observe: [active_defaults]
+        condition:
+          field: active_defaults
+          op: lte
+          value: 0
+          label: Active defaults recorded
+        policy_reference:
+          document_id: DB-CR
+          document_title: DemoBank Credit and Affordability Standards
+          section: CR-4.2
+          quote: "The applicant should have no active defaults recorded. One or more active defaults is a supporting criterion failure and results in referral to a credit officer."
+        message_pass: "No active defaults are recorded."
+        message_fail: "Active defaults are recorded, so the enquiry is referred to a credit officer."
+        remediation: "Refer to a credit officer with default details."
+
+      - id: DOC-2.1-VERIFICATION
+        title: Supporting evidence verified
+        category: documentation
+        severity: SOFT
+        threshold: "Evidence verified"
+        observe: [documents_verified]
+        condition:
+          field: documents_verified
+          op: is_true
+          label: Supporting evidence verified
+        policy_reference:
+          document_id: DB-DOC
+          document_title: DemoBank Documentation and Verification Standards
+          section: DOC-2.1
+          quote: "Where supplied data have not yet been verified against documents, the outcome must be issued as eligible with conditions. Unverified data is a supporting criterion failure, never a hard failure."
+        message_pass: "Supporting evidence has been verified."
+        message_fail: "Supporting evidence is not yet verified, so any positive outcome is conditional on verification."
+        message_unknown: "Verification status is not recorded, so any positive outcome remains conditional on verification."
+        remediation: "Collect the standard evidence set listed in DOC-2.2."
+
+  # ==================================================================
+  MORTGAGE:
+    display_name: Residential Mortgage
+    assumptions:
+      annual_interest_rate: 0.069
+      default_term_months: 360
+      stress_rate_increase: 0.02
+    limits:
+      min_amount: 50000
+      max_amount: 750000
+      income_multiple: 5.5
+      max_dti: 0.43
+      max_ltv: 0.90
+    rules:
+      - id: MG-2.1-AGE
+        title: Applicant age within product range
+        category: identity
+        severity: HARD
+        threshold: "21 to 65 years"
+        observe: [age]
+        condition:
+          all_of:
+            - {field: age, op: gte, value: 21, label: Applicant age}
+            - {field: age, op: lte, value: 65, label: Applicant age}
+        policy_reference:
+          document_id: DB-MG
+          document_title: DemoBank Residential Mortgage Eligibility Policy
+          section: MG-2.1
+          quote: "The applicant must be at least 21 years of age and no more than 65 years of age at the date of application."
+        message_pass: "Applicant age is inside the 21 to 65 range required for this product."
+        message_fail: "Applicant age is outside the 21 to 65 range required for this product."
+        message_unknown: "Applicant age is needed before the age criterion can be assessed."
+
+      - id: MG-2.2-RESIDENCY
+        title: Eligible residency status
+        category: identity
+        severity: HARD
+        observe: [residency_status]
+        condition:
+          field: residency_status
+          op: in
+          value: [CITIZEN, PERMANENT_RESIDENT, LONG_TERM_VISA]
+          label: Residency status
+        policy_reference:
+          document_id: DB-MG
+          document_title: DemoBank Residential Mortgage Eligibility Policy
+          section: MG-2.2
+          quote: "The applicant must be a citizen, a permanent resident, or a long-term visa holder with a residual visa term of at least 24 months."
+        message_pass: "Residency status is eligible for this product."
+        message_fail: "Residency status is not eligible for this product."
+        message_unknown: "Residency status is needed before this criterion can be assessed."
+
+      - id: MG-3.1-MIN-INCOME
+        title: Minimum gross annual income
+        category: income
+        severity: HARD
+        threshold: 36000
+        observe: [gross_annual_income]
+        condition:
+          field: gross_annual_income
+          op: gte
+          value: 36000
+          label: Gross verifiable annual income
+        policy_reference:
+          document_id: DB-MG
+          document_title: DemoBank Residential Mortgage Eligibility Policy
+          section: MG-3.1
+          quote: "Gross verifiable annual income must be at least 36,000 currency units for a sole application."
+        message_pass: "Income meets the minimum of 36,000 for a sole mortgage application."
+        message_fail: "Income is below the minimum of 36,000 required for a sole mortgage application."
+        message_unknown: "Gross annual income is needed before the income criterion can be assessed."
+
+      - id: MG-3.2-EMPLOYMENT
+        title: Employment category and tenure
+        category: employment
+        severity: HARD
+        threshold: "Eligible employment category with at least 12 months tenure"
+        observe: [employment_status, employment_months]
+        condition:
+          all_of:
+            - field: employment_status
+              op: in
+              value: [FULL_TIME, PART_TIME, SELF_EMPLOYED, CONTRACT]
+              label: Employment status
+            - field: employment_months
+              op: gte
+              value: 12
+              label: Months in current employment
+        policy_reference:
+          document_id: DB-MG
+          document_title: DemoBank Residential Mortgage Eligibility Policy
+          section: MG-3.2
+          quote: "The applicant must have at least 12 consecutive months in the current employment or trading arrangement."
+        message_pass: "Employment category and tenure meet the 12 month mortgage requirement."
+        message_fail: "Employment category or tenure does not meet the 12 month mortgage requirement."
+        message_unknown: "Employment status and tenure are needed before this criterion can be assessed."
+
+      - id: MG-4.1-AMOUNT-RANGE
+        title: Requested amount within product range
+        category: facility
+        severity: HARD
+        threshold: "50,000 to 750,000"
+        observe: [requested_amount]
+        condition:
+          all_of:
+            - {field: requested_amount, op: gte, value: 50000, label: Requested amount}
+            - {field: requested_amount, op: lte, value: 750000, label: Requested amount}
+        policy_reference:
+          document_id: DB-MG
+          document_title: DemoBank Residential Mortgage Eligibility Policy
+          section: MG-4.1
+          quote: "The Residential Mortgage is offered between 50,000 and 750,000 currency units."
+        message_pass: "Requested amount is inside the product range of 50,000 to 750,000."
+        message_fail: "Requested amount is outside the product range of 50,000 to 750,000."
+        message_unknown: "A requested amount is needed before this criterion can be assessed."
+
+      - id: MG-4.2-INCOME-MULTIPLE
+        title: Income multiple cap
+        category: affordability
+        severity: HARD
+        threshold: 5.5
+        observe: [income_multiple_used]
+        condition:
+          field: income_multiple_used
+          op: lte
+          value: 5.5
+          label: Requested amount as a multiple of annual income
+        policy_reference:
+          document_id: DB-MG
+          document_title: DemoBank Residential Mortgage Eligibility Policy
+          section: MG-4.2
+          quote: "The requested loan amount must not exceed 5.5 times gross verifiable annual income."
+        message_pass: "Requested amount is within 5.5 times annual income."
+        message_fail: "Requested amount exceeds 5.5 times annual income, the cap under policy version 1.0."
+        message_unknown: "Income and requested amount are both needed before the income multiple can be assessed."
+
+      - id: MG-5.1-LTV
+        title: Maximum loan to value
+        category: security
+        severity: HARD
+        threshold: 0.90
+        observe: [ltv_ratio, property_value, requested_amount, down_payment_pct]
+        condition:
+          field: ltv_ratio
+          op: lte
+          value: 0.90
+          label: Loan to value ratio
+        policy_reference:
+          document_id: DB-MG
+          document_title: DemoBank Residential Mortgage Eligibility Policy
+          section: MG-5.1
+          quote: "The loan amount must not exceed 90% of the lower of purchase price and valuation, equivalent to a minimum deposit of 10%."
+        message_pass: "Loan to value is within the 90% maximum permitted by policy version 1.0."
+        message_fail: "Loan to value exceeds the 90% maximum permitted by policy version 1.0."
+        message_unknown: "Property value and requested amount are both needed before loan to value can be assessed."
+        remediation: "Increase the deposit or reduce the requested amount."
+
+      - id: CR-2.1-CREDIT-SCORE
+        title: Minimum internal credit score
+        category: credit
+        severity: HARD
+        threshold: 660
+        observe: [credit_score]
+        condition:
+          field: credit_score
+          op: gte
+          value: 660
+          label: Internal credit score
+        policy_reference:
+          document_id: DB-CR
+          document_title: DemoBank Credit and Affordability Standards
+          section: CR-2.1
+          quote: "Minimum score for pre-qualification of a Residential Mortgage under version 1.0 is 660."
+        message_pass: "Internal credit score meets the policy version 1.0 mortgage minimum of 660."
+        message_fail: "Internal credit score is below the policy version 1.0 mortgage minimum of 660."
+        message_unknown: "No internal credit score is available, so this criterion cannot be assessed."
+
+      - id: CR-2.3-CREDIT-HISTORY
+        title: Credit history depth
+        category: credit
+        severity: SOFT
+        threshold: 24
+        observe: [credit_history_months]
+        condition:
+          field: credit_history_months
+          op: gte
+          value: 24
+          label: Months of credit history
+        policy_reference:
+          document_id: DB-CR
+          document_title: DemoBank Credit and Affordability Standards
+          section: CR-2.3
+          quote: "A credit history of at least 24 months is expected."
+        message_pass: "Credit history depth meets the 24 month expectation."
+        message_fail: "Credit history is shorter than 24 months, so the enquiry is referred for thin-file assessment."
+
+      - id: CR-3.1-DTI
+        title: Maximum debt-to-income ratio
+        category: affordability
+        severity: HARD
+        threshold: 0.43
+        observe: [dti_ratio, monthly_income, total_monthly_obligations, estimated_monthly_payment]
+        condition:
+          field: dti_ratio
+          op: lte
+          value: 0.43
+          label: Debt-to-income ratio
+        policy_reference:
+          document_id: DB-CR
+          document_title: DemoBank Credit and Affordability Standards
+          section: CR-3.1
+          quote: "Maximum debt-to-income ratio for the Residential Mortgage under version 1.0 is 43%."
+        message_pass: "Debt-to-income ratio including the indicative repayment is within the 43% maximum."
+        message_fail: "Debt-to-income ratio including the indicative repayment exceeds the 43% maximum."
+        message_unknown: "Income and existing monthly commitments are needed before affordability can be assessed."
+
+      - id: CR-4.1-BANKRUPTCY
+        title: Bankruptcy discharge period
+        category: credit
+        severity: HARD
+        threshold: "Discharged at least 5 years ago"
+        observe: [has_prior_bankruptcy, years_since_bankruptcy]
+        condition:
+          any_of:
+            - {field: has_prior_bankruptcy, op: is_false, label: Prior bankruptcy recorded}
+            - {field: years_since_bankruptcy, op: gte, value: 5, label: Years since discharge}
+        policy_reference:
+          document_id: DB-CR
+          document_title: DemoBank Credit and Affordability Standards
+          section: CR-4.1
+          quote: "An applicant with a prior bankruptcy may be pre-qualified only where the arrangement was discharged at least 5 years before the date of enquiry."
+        message_pass: "No bankruptcy restriction applies."
+        message_fail: "A bankruptcy discharged less than 5 years ago blocks pre-qualification under policy version 1.0."
+        message_unknown: "Confirmation of any prior bankruptcy and its discharge date is needed."
+
+      - id: CR-4.2-ACTIVE-DEFAULTS
+        title: No active defaults
+        category: credit
+        severity: SOFT
+        threshold: 0
+        observe: [active_defaults]
+        condition:
+          field: active_defaults
+          op: lte
+          value: 0
+          label: Active defaults recorded
+        policy_reference:
+          document_id: DB-CR
+          document_title: DemoBank Credit and Affordability Standards
+          section: CR-4.2
+          quote: "The applicant should have no active defaults recorded."
+        message_pass: "No active defaults are recorded."
+        message_fail: "Active defaults are recorded, so the enquiry is referred to a credit officer."
+
+      - id: DOC-2.1-VERIFICATION
+        title: Supporting evidence verified
+        category: documentation
+        severity: SOFT
+        observe: [documents_verified]
+        condition:
+          field: documents_verified
+          op: is_true
+          label: Supporting evidence verified
+        policy_reference:
+          document_id: DB-DOC
+          document_title: DemoBank Documentation and Verification Standards
+          section: DOC-2.1
+          quote: "Unverified data is a supporting criterion failure, never a hard failure."
+        message_pass: "Supporting evidence has been verified."
+        message_fail: "Supporting evidence is not yet verified, so any positive outcome is conditional on verification and valuation."
+        message_unknown: "Verification status is not recorded, so any positive outcome remains conditional."
+
+  # ==================================================================
+  AUTO_LOAN:
+    display_name: Auto Loan
+    assumptions:
+      annual_interest_rate: 0.089
+      default_term_months: 60
+      stress_rate_increase: 0.02
+      max_term_months: 84
+    limits:
+      min_amount: 5000
+      max_amount: 75000
+      max_dti: 0.45
+      max_ltv: 0.90
+    rules:
+      - id: AL-2.1-AGE
+        title: Applicant age within product range
+        category: identity
+        severity: HARD
+        threshold: "21 to 70 years"
+        observe: [age]
+        condition:
+          all_of:
+            - {field: age, op: gte, value: 21, label: Applicant age}
+            - {field: age, op: lte, value: 70, label: Applicant age}
+        policy_reference:
+          document_id: DB-AL
+          document_title: DemoBank Auto Loan Eligibility Policy
+          section: AL-2.1
+          quote: "The applicant must be at least 21 and no more than 70 years of age at the date of application."
+        message_pass: "Applicant age is inside the 21 to 70 range required for this product."
+        message_fail: "Applicant age is outside the 21 to 70 range required for this product."
+        message_unknown: "Applicant age is needed before the age criterion can be assessed."
+
+      - id: AL-3.1-MIN-INCOME
+        title: Minimum gross annual income
+        category: income
+        severity: HARD
+        threshold: 20000
+        observe: [gross_annual_income]
+        condition:
+          field: gross_annual_income
+          op: gte
+          value: 20000
+          label: Gross verifiable annual income
+        policy_reference:
+          document_id: DB-AL
+          document_title: DemoBank Auto Loan Eligibility Policy
+          section: AL-3.1
+          quote: "Gross verifiable annual income must be at least 20,000 currency units."
+        message_pass: "Income meets the minimum of 20,000 for this product."
+        message_fail: "Income is below the minimum of 20,000 required for this product."
+        message_unknown: "Gross annual income is needed before the income criterion can be assessed."
+
+      - id: AL-3.2-EMPLOYMENT
+        title: Employment category and tenure
+        category: employment
+        severity: HARD
+        threshold: "Eligible employment category with at least 6 months tenure"
+        observe: [employment_status, employment_months]
+        condition:
+          all_of:
+            - field: employment_status
+              op: in
+              value: [FULL_TIME, PART_TIME, SELF_EMPLOYED, CONTRACT]
+              label: Employment status
+            - field: employment_months
+              op: gte
+              value: 6
+              label: Months in current employment
+        policy_reference:
+          document_id: DB-AL
+          document_title: DemoBank Auto Loan Eligibility Policy
+          section: AL-3.2
+          quote: "At least 6 consecutive months in the current employment or trading arrangement is required."
+        message_pass: "Employment category and tenure meet the 6 month requirement."
+        message_fail: "Employment category or tenure does not meet the 6 month requirement."
+        message_unknown: "Employment status and tenure are needed before this criterion can be assessed."
+
+      - id: AL-4.1-AMOUNT-RANGE
+        title: Requested amount within product range
+        category: facility
+        severity: HARD
+        threshold: "5,000 to 75,000"
+        observe: [requested_amount]
+        condition:
+          all_of:
+            - {field: requested_amount, op: gte, value: 5000, label: Requested amount}
+            - {field: requested_amount, op: lte, value: 75000, label: Requested amount}
+        policy_reference:
+          document_id: DB-AL
+          document_title: DemoBank Auto Loan Eligibility Policy
+          section: AL-4.1
+          quote: "The Auto Loan is offered between 5,000 and 75,000 currency units."
+        message_pass: "Requested amount is inside the product range of 5,000 to 75,000."
+        message_fail: "Requested amount is outside the product range of 5,000 to 75,000."
+        message_unknown: "A requested amount is needed before this criterion can be assessed."
+
+      - id: AL-4.2-LTV
+        title: Maximum loan to value
+        category: security
+        severity: HARD
+        threshold: 0.90
+        observe: [ltv_ratio, vehicle_value, requested_amount]
+        condition:
+          field: ltv_ratio
+          op: lte
+          value: 0.90
+          label: Loan to value ratio
+        policy_reference:
+          document_id: DB-AL
+          document_title: DemoBank Auto Loan Eligibility Policy
+          section: AL-4.2
+          quote: "The loan amount must not exceed 90% of the dealer invoice price or independent vehicle valuation, whichever is lower."
+        message_pass: "Loan to value is within the 90% maximum permitted by policy version 1.0."
+        message_fail: "Loan to value exceeds the 90% maximum permitted by policy version 1.0."
+        message_unknown: "Vehicle value and requested amount are both needed before loan to value can be assessed."
+
+      - id: AL-4.3-TERM
+        title: Maximum scheduled term
+        category: facility
+        severity: HARD
+        threshold: 84
+        observe: [loan_term_months]
+        condition:
+          field: loan_term_months
+          op: lte
+          value: 84
+          label: Scheduled term in months
+        policy_reference:
+          document_id: DB-AL
+          document_title: DemoBank Auto Loan Eligibility Policy
+          section: AL-4.3
+          quote: "The maximum scheduled term is 84 months."
+        message_pass: "Scheduled term is within the 84 month maximum."
+        message_fail: "Scheduled term exceeds the 84 month maximum under policy version 1.0."
+        message_unknown: "A scheduled term is needed before this criterion can be assessed."
+
+      - id: CR-2.1-CREDIT-SCORE
+        title: Minimum internal credit score
+        category: credit
+        severity: HARD
+        threshold: 620
+        observe: [credit_score]
+        condition:
+          field: credit_score
+          op: gte
+          value: 620
+          label: Internal credit score
+        policy_reference:
+          document_id: DB-CR
+          document_title: DemoBank Credit and Affordability Standards
+          section: CR-2.1
+          quote: "Minimum score for pre-qualification of an Auto Loan under version 1.0 is 620."
+        message_pass: "Internal credit score meets the policy version 1.0 auto loan minimum of 620."
+        message_fail: "Internal credit score is below the policy version 1.0 auto loan minimum of 620."
+        message_unknown: "No internal credit score is available, so this criterion cannot be assessed."
+
+      - id: CR-3.1-DTI
+        title: Maximum debt-to-income ratio
+        category: affordability
+        severity: HARD
+        threshold: 0.45
+        observe: [dti_ratio, monthly_income, total_monthly_obligations, estimated_monthly_payment]
+        condition:
+          field: dti_ratio
+          op: lte
+          value: 0.45
+          label: Debt-to-income ratio
+        policy_reference:
+          document_id: DB-CR
+          document_title: DemoBank Credit and Affordability Standards
+          section: CR-3.1
+          quote: "Maximum debt-to-income ratio for the Auto Loan under version 1.0 is 45%."
+        message_pass: "Debt-to-income ratio including the indicative repayment is within the 45% maximum."
+        message_fail: "Debt-to-income ratio including the indicative repayment exceeds the 45% maximum."
+        message_unknown: "Income and existing monthly commitments are needed before affordability can be assessed."
+
+      - id: CR-4.1-BANKRUPTCY
+        title: Bankruptcy discharge period
+        category: credit
+        severity: HARD
+        threshold: "Discharged at least 5 years ago"
+        observe: [has_prior_bankruptcy, years_since_bankruptcy]
+        condition:
+          any_of:
+            - {field: has_prior_bankruptcy, op: is_false, label: Prior bankruptcy recorded}
+            - {field: years_since_bankruptcy, op: gte, value: 5, label: Years since discharge}
+        policy_reference:
+          document_id: DB-CR
+          document_title: DemoBank Credit and Affordability Standards
+          section: CR-4.1
+          quote: "An applicant with a prior bankruptcy may be pre-qualified only where the arrangement was discharged at least 5 years before the date of enquiry."
+        message_pass: "No bankruptcy restriction applies."
+        message_fail: "A bankruptcy discharged less than 5 years ago blocks pre-qualification under policy version 1.0."
+        message_unknown: "Confirmation of any prior bankruptcy and its discharge date is needed."
+
+      - id: CR-4.2-ACTIVE-DEFAULTS
+        title: No active defaults
+        category: credit
+        severity: SOFT
+        threshold: 0
+        observe: [active_defaults]
+        condition:
+          field: active_defaults
+          op: lte
+          value: 0
+          label: Active defaults recorded
+        policy_reference:
+          document_id: DB-CR
+          document_title: DemoBank Credit and Affordability Standards
+          section: CR-4.2
+          quote: "The applicant should have no active defaults recorded."
+        message_pass: "No active defaults are recorded."
+        message_fail: "Active defaults are recorded, so the enquiry is referred to a credit officer."
+
+      - id: CR-2.3-CREDIT-HISTORY
+        title: Credit history depth
+        category: credit
+        severity: SOFT
+        threshold: 24
+        observe: [credit_history_months]
+        condition:
+          field: credit_history_months
+          op: gte
+          value: 24
+          label: Months of credit history
+        policy_reference:
+          document_id: DB-CR
+          document_title: DemoBank Credit and Affordability Standards
+          section: CR-2.3
+          quote: "A credit history of at least 24 months is expected."
+        message_pass: "Credit history depth meets the 24 month expectation."
+        message_fail: "Credit history is shorter than 24 months, so the enquiry is referred for thin-file assessment."
+
+      - id: DOC-2.1-VERIFICATION
+        title: Supporting evidence verified
+        category: documentation
+        severity: SOFT
+        observe: [documents_verified]
+        condition:
+          field: documents_verified
+          op: is_true
+          label: Supporting evidence verified
+        policy_reference:
+          document_id: DB-DOC
+          document_title: DemoBank Documentation and Verification Standards
+          section: DOC-2.1
+          quote: "Unverified data is a supporting criterion failure, never a hard failure."
+        message_pass: "Supporting evidence has been verified."
+        message_fail: "Supporting evidence is not yet verified, so any positive outcome is conditional on verification."
+        message_unknown: "Verification status is not recorded, so any positive outcome remains conditional."

@@ -1,0 +1,94 @@
+# =====================================================================
+# DemoBank Loan Eligibility Assistant - full demo stack
+# Educational demonstration. Synthetic data only.
+#
+#   docker compose up --build
+#     API        http://localhost:8000/docs
+#     UI         http://localhost:8501
+#     Prometheus http://localhost:9090
+#     Grafana    http://localhost:3000  (admin / demobank)
+# =====================================================================
+name: demobank-loan-eligibility
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: demobank/loan-eligibility-api:1.0.0
+    container_name: demobank-api
+    environment:
+      APP_ENV: docker
+      LOG_LEVEL: INFO
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      CLAUDE_MODEL: ${CLAUDE_MODEL:-claude-sonnet-4-5}
+      ENABLE_LLM: ${ENABLE_LLM:-true}
+      # 'auto' downloads all-MiniLM-L6-v2 on first start; set to 'hash' for a
+      # fully offline demo.
+      EMBEDDING_BACKEND: ${EMBEDDING_BACKEND:-auto}
+      VECTOR_BACKEND: ${VECTOR_BACKEND:-auto}
+      CHROMA_DIR: /app/var/chroma
+      AUDIT_DB_URL: sqlite:////app/var/audit.db
+      DEFAULT_POLICY_VERSION: ${DEFAULT_POLICY_VERSION:-2.0}
+    volumes:
+      - api-state:/app/var
+      - model-cache:/home/demo/.cache
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+    image: demobank/loan-eligibility-ui:1.0.0
+    container_name: demobank-ui
+    environment:
+      API_BASE_URL: http://api:8000
+    ports:
+      - "8501:8501"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: demobank-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=7d
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: demobank-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: demobank
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+volumes:
+  api-state:
+  model-cache:
+  prometheus-data:
+  grafana-data:

@@ -1,0 +1,226 @@
+# =====================================================================
+# CI for the DemoBank Loan Eligibility Assistant (educational demo)
+#
+# Everything runs offline: the hashing embedder, the in-memory vector store
+# and the deterministic explainer mean no model download and no API key are
+# needed to prove the pipeline works.
+# =====================================================================
+name: CI
+
+on:
+  push:
+    branches: ["main", "master", "develop"]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.11"
+  # offline-by-default test configuration
+  APP_ENV: ci
+  LOG_LEVEL: WARNING
+  EMBEDDING_BACKEND: hash
+  VECTOR_BACKEND: memory
+  ENABLE_LLM: "false"
+  DEFAULT_POLICY_VERSION: "2.0"
+
+jobs:
+  lint:
+    name: Lint and format check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install ruff
+        run: pip install "ruff>=0.4.0"
+      - name: Ruff lint
+        run: ruff check app tests scripts promptfoo ui
+      - name: Ruff format check
+        run: ruff format --check app tests scripts promptfoo ui
+        continue-on-error: true
+
+  policy-integrity:
+    name: Policy and rule pack integrity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install PyYAML pydantic
+      - name: Every rule must cite a clause that exists in its own policy version
+        run: python scripts/validate_policies.py
+
+  unit-tests:
+    name: Unit and integration tests
+    runs-on: ubuntu-latest
+    needs: [lint, policy-integrity]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      - name: Rule engine, facts and predicates
+        run: pytest tests/test_facts.py tests/test_predicates.py tests/test_rule_engine.py -v
+      - name: Policy versioning
+        run: pytest tests/test_policy_versioning.py -v
+      - name: RAG retrieval
+        run: pytest tests/test_rag.py -v
+      - name: Document extraction
+        run: pytest tests/test_extraction.py -v
+      - name: Explanation guardrails
+        run: pytest tests/test_llm_guardrails.py -v
+      - name: API and streaming contract
+        run: pytest tests/test_api.py -v
+      - name: Coverage summary
+        run: pytest --cov=app --cov-report=term-missing --cov-report=xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage.xml
+          if-no-files-found: ignore
+
+  regression:
+    name: Policy regression suite
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+      - name: Golden decisions must not move
+        run: pytest tests/test_regression_golden.py -v
+      - name: End-to-end demo run
+        run: python scripts/run_demo.py --compare
+
+  promptfoo:
+    name: Promptfoo explanation evaluation
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Build the policy index
+        run: python scripts/ingest_policies.py
+      - name: Evaluate explanation faithfulness
+        env:
+          # Present in secrets => Claude is evaluated; absent => the
+          # deterministic explainer is evaluated. Both must pass.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ENABLE_LLM: ${{ secrets.ANTHROPIC_API_KEY != '' && 'true' || 'false' }}
+          PROMPTFOO_DISABLE_TELEMETRY: "1"
+        run: npx --yes promptfoo@latest eval -c promptfoo/promptfooconfig.yaml --output promptfoo/output/results.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: promptfoo-results
+          path: promptfoo/output/results.json
+          if-no-files-found: ignore
+
+  docker:
+    name: Docker build and smoke test
+    runs-on: ubuntu-latest
+    needs: [unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          load: true
+          tags: demobank/loan-eligibility-api:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Build UI image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile.ui
+          push: false
+          load: true
+          tags: demobank/loan-eligibility-ui:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test the API container
+        run: |
+          docker run -d --name demobank-ci \
+            -e EMBEDDING_BACKEND=hash \
+            -e VECTOR_BACKEND=memory \
+            -e ENABLE_LLM=false \
+            -p 8000:8000 demobank/loan-eligibility-api:ci
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://localhost:8000/health/live > /dev/null; then break; fi
+            sleep 2
+          done
+          curl -fsS http://localhost:8000/health | tee health.json
+          python - <<'PY'
+          import json
+          health = json.load(open("health.json"))
+          assert health["status"] == "ok", health
+          assert health["policy_versions"] == ["1.0", "2.0"], health
+          assert health["indexed_chunks"] > 0, health
+          print("health OK:", health["llm_mode"], health["vector_backend"])
+          PY
+          curl -fsS -X POST http://localhost:8000/eligibility/evaluate \
+            -H 'Content-Type: application/json' \
+            -d '{"applicant":{"age":34,"residency_status":"CITIZEN","employment_status":"FULL_TIME","employment_months":48,"annual_income":90000,"existing_monthly_debt":400,"credit_score":720,"credit_history_months":120,"active_defaults":0,"has_prior_bankruptcy":false,"liquid_savings":15000,"documents_verified":true,"requested_amount":20000,"loan_term_months":60},"product":"PERSONAL_LOAN","policy_version":"2.0"}' \
+            | tee decision.json
+          python - <<'PY'
+          import json
+          body = json.load(open("decision.json"))
+          assert body["decision"]["outcome"] == "ELIGIBLE", body["decision"]["outcome"]
+          assert body["decision"]["policy_version"] == "2.0"
+          assert body["citations"], "no citations returned"
+          print("decision OK:", body["decision"]["decision_hash"][:12])
+          PY
+          curl -fsS http://localhost:8000/metrics | grep -q demobank_eligibility_decisions_total
+      - name: Container logs
+        if: always()
+        run: docker logs demobank-ci || true
+      - name: Clean up
+        if: always()
+        run: docker rm -f demobank-ci || true
+
+  summary:
+    name: CI summary
+    runs-on: ubuntu-latest
+    needs: [regression, promptfoo, docker]
+    if: always()
+    steps:
+      - name: Report
+        run: |
+          echo "### DemoBank Loan Eligibility Assistant - CI" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Stage | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
+          echo "| Regression (golden decisions) | ${{ needs.regression.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Promptfoo (explanation faithfulness) | ${{ needs.promptfoo.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Docker build + smoke | ${{ needs.docker.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Synthetic DemoBank data only - no real customer data, no real policy." >> $GITHUB_STEP_SUMMARY

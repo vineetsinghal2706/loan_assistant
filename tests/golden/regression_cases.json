@@ -1,0 +1,358 @@
+{
+  "notice": "DEMO BANK - SYNTHETIC DATA - FOR EDUCATIONAL USE ONLY. Hand-authored expectations for the deterministic rule engine. Any change to a rule pack that moves one of these outcomes must be a deliberate, reviewed policy change.",
+  "cases": [
+    {
+      "id": "A-clean-personal-loan",
+      "description": "Comfortably inside every criterion in both policy versions.",
+      "product": "PERSONAL_LOAN",
+      "applicant": {
+        "applicant_reference": "GOLD-A",
+        "age": 34,
+        "residency_status": "CITIZEN",
+        "employment_status": "FULL_TIME",
+        "employment_months": 48,
+        "annual_income": 90000,
+        "existing_monthly_debt": 400,
+        "credit_score": 720,
+        "credit_history_months": 120,
+        "active_defaults": 0,
+        "has_prior_bankruptcy": false,
+        "liquid_savings": 15000,
+        "documents_verified": true,
+        "requested_amount": 20000,
+        "loan_term_months": 60
+      },
+      "expected": {
+        "1.0": {"outcome": "ELIGIBLE", "failed_hard": [], "failed_soft": [], "unknown": []},
+        "2.0": {"outcome": "ELIGIBLE", "failed_hard": [], "failed_soft": [], "unknown": []}
+      }
+    },
+    {
+      "id": "B-credit-score-645",
+      "description": "Score 645 passes the v1.0 minimum of 640 and fails the v2.0 minimum of 660.",
+      "product": "PERSONAL_LOAN",
+      "applicant": {
+        "applicant_reference": "GOLD-B",
+        "age": 41,
+        "residency_status": "PERMANENT_RESIDENT",
+        "employment_status": "FULL_TIME",
+        "employment_months": 36,
+        "annual_income": 72000,
+        "existing_monthly_debt": 350,
+        "credit_score": 645,
+        "credit_history_months": 90,
+        "active_defaults": 0,
+        "has_prior_bankruptcy": false,
+        "liquid_savings": 12000,
+        "documents_verified": true,
+        "requested_amount": 18000,
+        "loan_term_months": 60
+      },
+      "expected": {
+        "1.0": {"outcome": "ELIGIBLE", "failed_hard": [], "failed_soft": [], "unknown": []},
+        "2.0": {
+          "outcome": "NOT_ELIGIBLE",
+          "failed_hard": ["CR-2.1-CREDIT-SCORE"],
+          "failed_soft": [],
+          "unknown": []
+        }
+      }
+    },
+    {
+      "id": "C-employment-tenure-9-months",
+      "description": "Nine months tenure passes v1.0 (6 months) and fails v2.0 (12 months).",
+      "product": "PERSONAL_LOAN",
+      "applicant": {
+        "applicant_reference": "GOLD-C",
+        "age": 30,
+        "residency_status": "CITIZEN",
+        "employment_status": "FULL_TIME",
+        "employment_months": 9,
+        "annual_income": 60000,
+        "existing_monthly_debt": 300,
+        "credit_score": 700,
+        "credit_history_months": 48,
+        "active_defaults": 0,
+        "has_prior_bankruptcy": false,
+        "liquid_savings": 8000,
+        "documents_verified": true,
+        "requested_amount": 15000,
+        "loan_term_months": 60
+      },
+      "expected": {
+        "1.0": {"outcome": "ELIGIBLE", "failed_hard": [], "failed_soft": [], "unknown": []},
+        "2.0": {
+          "outcome": "NOT_ELIGIBLE",
+          "failed_hard": ["PL-3.2-EMPLOYMENT"],
+          "failed_soft": [],
+          "unknown": []
+        }
+      }
+    },
+    {
+      "id": "D-debt-to-income-breach",
+      "description": "DTI of about 47% breaches both the 45% (v1.0) and 40% (v2.0) maxima.",
+      "product": "PERSONAL_LOAN",
+      "applicant": {
+        "applicant_reference": "GOLD-D",
+        "age": 45,
+        "residency_status": "CITIZEN",
+        "employment_status": "FULL_TIME",
+        "employment_months": 60,
+        "annual_income": 40000,
+        "existing_monthly_debt": 900,
+        "credit_score": 700,
+        "credit_history_months": 80,
+        "active_defaults": 0,
+        "has_prior_bankruptcy": false,
+        "liquid_savings": 8000,
+        "documents_verified": true,
+        "requested_amount": 30000,
+        "loan_term_months": 60
+      },
+      "expected": {
+        "1.0": {
+          "outcome": "NOT_ELIGIBLE",
+          "failed_hard": ["CR-3.1-DTI"],
+          "failed_soft": [],
+          "unknown": []
+        },
+        "2.0": {
+          "outcome": "NOT_ELIGIBLE",
+          "failed_hard": ["CR-3.1-DTI"],
+          "failed_soft": [],
+          "unknown": []
+        }
+      }
+    },
+    {
+      "id": "E-missing-credit-score",
+      "description": "A mandatory criterion cannot be evaluated: insufficient information, never a decline (CR-2.2).",
+      "product": "PERSONAL_LOAN",
+      "applicant": {
+        "applicant_reference": "GOLD-E",
+        "age": 30,
+        "residency_status": "CITIZEN",
+        "employment_status": "FULL_TIME",
+        "employment_months": 24,
+        "annual_income": 60000,
+        "existing_monthly_debt": 300,
+        "credit_history_months": 36,
+        "active_defaults": 0,
+        "has_prior_bankruptcy": false,
+        "liquid_savings": 10000,
+        "documents_verified": true,
+        "requested_amount": 15000,
+        "loan_term_months": 60
+      },
+      "expected": {
+        "1.0": {
+          "outcome": "INSUFFICIENT_INFORMATION",
+          "failed_hard": [],
+          "failed_soft": [],
+          "unknown": ["CR-2.1-CREDIT-SCORE"]
+        },
+        "2.0": {
+          "outcome": "INSUFFICIENT_INFORMATION",
+          "failed_hard": [],
+          "failed_soft": [],
+          "unknown": ["CR-2.1-CREDIT-SCORE"]
+        }
+      }
+    },
+    {
+      "id": "F-thin-file-unverified",
+      "description": "All mandatory criteria met; two supporting criteria fail, so the outcome is conditional.",
+      "product": "PERSONAL_LOAN",
+      "applicant": {
+        "applicant_reference": "GOLD-F",
+        "age": 27,
+        "residency_status": "CITIZEN",
+        "employment_status": "FULL_TIME",
+        "employment_months": 30,
+        "annual_income": 75000,
+        "existing_monthly_debt": 200,
+        "credit_score": 700,
+        "credit_history_months": 12,
+        "active_defaults": 0,
+        "has_prior_bankruptcy": false,
+        "liquid_savings": 9000,
+        "documents_verified": false,
+        "requested_amount": 15000,
+        "loan_term_months": 60
+      },
+      "expected": {
+        "1.0": {
+          "outcome": "ELIGIBLE_WITH_CONDITIONS",
+          "failed_hard": [],
+          "failed_soft": ["CR-2.3-CREDIT-HISTORY", "DOC-2.1-VERIFICATION"],
+          "unknown": []
+        },
+        "2.0": {
+          "outcome": "ELIGIBLE_WITH_CONDITIONS",
+          "failed_hard": [],
+          "failed_soft": ["CR-2.3-CREDIT-HISTORY", "DOC-2.1-VERIFICATION"],
+          "unknown": []
+        }
+      }
+    },
+    {
+      "id": "G-mortgage-first-time-buyer-concession",
+      "description": "90% LTV: allowed outright in v1.0, allowed in v2.0 only through the MG-5.4 first-time buyer concession at score 720+.",
+      "product": "MORTGAGE",
+      "applicant": {
+        "applicant_reference": "GOLD-G",
+        "age": 32,
+        "residency_status": "CITIZEN",
+        "employment_status": "FULL_TIME",
+        "employment_months": 36,
+        "annual_income": 130000,
+        "existing_monthly_debt": 500,
+        "credit_score": 725,
+        "credit_history_months": 96,
+        "active_defaults": 0,
+        "has_prior_bankruptcy": false,
+        "liquid_savings": 30000,
+        "documents_verified": true,
+        "is_first_time_buyer": true,
+        "requested_amount": 360000,
+        "loan_term_months": 360,
+        "property_value": 400000,
+        "down_payment": 40000
+      },
+      "expected": {
+        "1.0": {"outcome": "ELIGIBLE", "failed_hard": [], "failed_soft": [], "unknown": []},
+        "2.0": {"outcome": "ELIGIBLE", "failed_hard": [], "failed_soft": [], "unknown": []}
+      }
+    },
+    {
+      "id": "H-mortgage-ltv-tightened",
+      "description": "Same 90% LTV but score 700: the v2.0 concession does not apply, so the LTV criterion fails.",
+      "product": "MORTGAGE",
+      "applicant": {
+        "applicant_reference": "GOLD-H",
+        "age": 32,
+        "residency_status": "CITIZEN",
+        "employment_status": "FULL_TIME",
+        "employment_months": 36,
+        "annual_income": 130000,
+        "existing_monthly_debt": 500,
+        "credit_score": 700,
+        "credit_history_months": 96,
+        "active_defaults": 0,
+        "has_prior_bankruptcy": false,
+        "liquid_savings": 30000,
+        "documents_verified": true,
+        "is_first_time_buyer": true,
+        "requested_amount": 360000,
+        "loan_term_months": 360,
+        "property_value": 400000,
+        "down_payment": 40000
+      },
+      "expected": {
+        "1.0": {"outcome": "ELIGIBLE", "failed_hard": [], "failed_soft": [], "unknown": []},
+        "2.0": {
+          "outcome": "NOT_ELIGIBLE",
+          "failed_hard": ["MG-5.1-LTV"],
+          "failed_soft": [],
+          "unknown": []
+        }
+      }
+    },
+    {
+      "id": "I-auto-loan-clean",
+      "description": "Auto loan inside the tightened v2.0 LTV (85%) and term (72 months) limits.",
+      "product": "AUTO_LOAN",
+      "applicant": {
+        "applicant_reference": "GOLD-I",
+        "age": 38,
+        "residency_status": "CITIZEN",
+        "employment_status": "FULL_TIME",
+        "employment_months": 24,
+        "annual_income": 55000,
+        "existing_monthly_debt": 250,
+        "credit_score": 690,
+        "credit_history_months": 60,
+        "active_defaults": 0,
+        "has_prior_bankruptcy": false,
+        "liquid_savings": 10000,
+        "documents_verified": true,
+        "requested_amount": 25000,
+        "loan_term_months": 60,
+        "vehicle_value": 32000
+      },
+      "expected": {
+        "1.0": {"outcome": "ELIGIBLE", "failed_hard": [], "failed_soft": [], "unknown": []},
+        "2.0": {"outcome": "ELIGIBLE", "failed_hard": [], "failed_soft": [], "unknown": []}
+      }
+    },
+    {
+      "id": "J-residency-ineligible",
+      "description": "Short-term visa holders are outside the product in both versions.",
+      "product": "PERSONAL_LOAN",
+      "applicant": {
+        "applicant_reference": "GOLD-J",
+        "age": 30,
+        "residency_status": "SHORT_TERM_VISA",
+        "employment_status": "FULL_TIME",
+        "employment_months": 24,
+        "annual_income": 60000,
+        "existing_monthly_debt": 300,
+        "credit_score": 700,
+        "credit_history_months": 36,
+        "active_defaults": 0,
+        "has_prior_bankruptcy": false,
+        "liquid_savings": 10000,
+        "documents_verified": true,
+        "requested_amount": 15000,
+        "loan_term_months": 60
+      },
+      "expected": {
+        "1.0": {
+          "outcome": "NOT_ELIGIBLE",
+          "failed_hard": ["PL-2.2-RESIDENCY"],
+          "failed_soft": [],
+          "unknown": []
+        },
+        "2.0": {
+          "outcome": "NOT_ELIGIBLE",
+          "failed_hard": ["PL-2.2-RESIDENCY"],
+          "failed_soft": [],
+          "unknown": []
+        }
+      }
+    },
+    {
+      "id": "K-bankruptcy-window-relaxed",
+      "description": "Discharged 4.5 years ago: fails the v1.0 five-year window, passes the v2.0 four-year window. Policy versioning can loosen as well as tighten.",
+      "product": "PERSONAL_LOAN",
+      "applicant": {
+        "applicant_reference": "GOLD-K",
+        "age": 40,
+        "residency_status": "CITIZEN",
+        "employment_status": "FULL_TIME",
+        "employment_months": 60,
+        "annual_income": 80000,
+        "existing_monthly_debt": 300,
+        "credit_score": 700,
+        "credit_history_months": 96,
+        "active_defaults": 0,
+        "has_prior_bankruptcy": true,
+        "years_since_bankruptcy": 4.5,
+        "liquid_savings": 15000,
+        "documents_verified": true,
+        "requested_amount": 20000,
+        "loan_term_months": 60
+      },
+      "expected": {
+        "1.0": {
+          "outcome": "NOT_ELIGIBLE",
+          "failed_hard": ["CR-4.1-BANKRUPTCY"],
+          "failed_soft": [],
+          "unknown": []
+        },
+        "2.0": {"outcome": "ELIGIBLE", "failed_hard": [], "failed_soft": [], "unknown": []}
+      }
+    }
+  ]
+}

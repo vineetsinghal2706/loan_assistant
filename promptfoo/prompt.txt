@@ -1,0 +1,5 @@
+{{question}}
+
+(The custom provider ignores this text apart from the question: it runs the full
+pipeline - deterministic rule engine, then version-scoped retrieval, then the
+explainer - so the evaluation measures the assistant, not a bare prompt.)

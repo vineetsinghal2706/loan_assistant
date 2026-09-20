@@ -1,0 +1,95 @@
+# Alerting rules. In a real deployment these would page a human; here they
+# demonstrate what is worth alerting on for an assistant of this shape.
+groups:
+  - name: demobank-availability
+    rules:
+      - alert: EligibilityApiDown
+        expr: up{job="demobank-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: Eligibility API is not being scraped
+          description: Prometheus cannot reach the API /metrics endpoint.
+
+      - alert: HighHttpErrorRate
+        expr: |
+          sum(rate(demobank_http_requests_total{status=~"5.."}[5m]))
+            / clamp_min(sum(rate(demobank_http_requests_total[5m])), 0.001) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: More than 5% of requests are failing
+          description: Investigate the API logs for the offending trace ids.
+
+      - alert: SlowPreQualification
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(demobank_http_request_duration_seconds_bucket{route=~"/eligibility.*|/chat.*"}[5m])) by (le)
+          ) > 10
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: p95 pre-qualification latency above 10s
+
+  - name: demobank-quality
+    rules:
+      # The single most important signal in this design: the explanation
+      # contradicted the deterministic decision.
+      - alert: GuardrailViolationsDetected
+        expr: increase(demobank_guardrail_violations_total[15m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: An explanation contradicted the deterministic decision
+          description: >-
+            Guardrails replaced at least one generated explanation. Inspect the
+            audit records with a non-empty guardrail_violations list.
+
+      - alert: PolicyIndexEmpty
+        expr: min(demobank_policy_index_chunks) == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: A policy version has no indexed clauses
+          description: Citations will fall back to rule metadata. Re-run ingestion.
+
+      - alert: RetrievalReturnedNothing
+        expr: increase(demobank_rag_empty_retrievals_total[15m]) > 3
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: Policy retrieval repeatedly returned no clause
+
+      - alert: LlmFallbackRate
+        expr: increase(demobank_llm_fallbacks_total[15m]) > 5
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: Claude is failing and explanations are being templated
+
+      - alert: AuditWritesFailing
+        expr: increase(demobank_audit_write_errors_total[10m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: Decisions are being served without an audit record
+
+      - alert: InsufficientInformationSpike
+        expr: |
+          sum(rate(demobank_eligibility_decisions_total{outcome="INSUFFICIENT_INFORMATION"}[30m]))
+            / clamp_min(sum(rate(demobank_eligibility_decisions_total[30m])), 0.001) > 0.5
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: Most enquiries cannot be assessed
+          description: Likely an extraction or intake regression rather than a credit trend.
