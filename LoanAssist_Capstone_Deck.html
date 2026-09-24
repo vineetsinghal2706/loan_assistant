@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LoanAssist — Capstone Deck</title>
+<style>
+:root{
+  --ink:#0E1E38;
+  --navy:#1B3A6B;
+  --steel:#46618F;
+  --muted:#5B6B85;
+  --faint:#8595AC;
+  --line:#DDE4EE;
+  --tint:#F5F8FC;
+  --tint2:#EDF2F9;
+  --accent:#B5651D;
+  --accent-soft:#FBF1E6;
+  --ok:#1F6F43;
+  --ok-soft:#EAF4EE;
+  --warn:#8A5A00;
+  --warn-soft:#FBF3E2;
+  --stop:#93321F;
+  --stop-soft:#FAEDE9;
+  --serif:Cambria,"Bookman Old Style",Georgia,serif;
+  --sans:Calibri,"Segoe UI",Arial,sans-serif;
+  --mono:Consolas,"Courier New",monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:#E9EDF3;
+  font-family:var(--sans);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- shell ---------- */
+.toolbar{
+  position:fixed;top:0;left:0;right:0;height:46px;z-index:50;
+  background:var(--ink);color:#fff;display:flex;align-items:center;
+  gap:14px;padding:0 18px;font-size:13px;
+}
+.toolbar .brand{font-family:var(--serif);font-weight:bold;font-size:15px;letter-spacing:.3px}
+.toolbar .spacer{flex:1}
+.toolbar button{
+  font-family:var(--sans);font-size:12.5px;color:#fff;background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.25);border-radius:6px;padding:6px 12px;cursor:pointer;
+}
+.toolbar button:hover{background:rgba(255,255,255,.22)}
+.toolbar .hint{color:#A9B8CE;font-size:12px}
+
+.deck{padding:74px 0 60px;display:flex;flex-direction:column;align-items:center;gap:30px}
+.unit{width:min(1280px,96vw)}
+.slide{
+  width:1280px;height:720px;background:#fff;position:relative;overflow:hidden;
+  transform-origin:top left;box-shadow:0 2px 16px rgba(14,30,56,.14);
+}
+.scaler{position:relative;width:100%}
+
+/* ---------- slide furniture ---------- */
+.pad{position:absolute;inset:0;padding:52px 60px 46px}
+.eyebrow{
+  font-size:11.5px;letter-spacing:1.6px;text-transform:uppercase;
+  color:var(--accent);font-weight:bold;margin-bottom:10px;
+}
+h1{font-family:var(--serif);font-size:40px;line-height:1.1;margin:0;color:var(--ink);font-weight:bold}
+.sub{font-size:15.5px;color:var(--muted);margin-top:9px;line-height:1.45}
+.pnum{
+  position:absolute;right:60px;bottom:22px;font-size:11.5px;color:var(--faint);
+  letter-spacing:.5px;
+}
+.foot{
+  position:absolute;left:60px;bottom:22px;right:150px;font-size:11px;color:var(--faint);
+  line-height:1.5;
+}
+
+/* ---------- primitives ---------- */
+.card{background:var(--tint);border:1px solid var(--line);border-radius:10px;padding:15px 17px}
+.card h3{margin:0 0 8px;font-size:15px;color:var(--navy);font-family:var(--sans);font-weight:bold;
+  letter-spacing:.2px}
+.lead{font-size:15px;line-height:1.62;color:#25364F;margin:0}
+ul.clean{list-style:none;margin:0;padding:0}
+ul.clean li{
+  font-size:14px;line-height:1.5;color:#25364F;padding-left:18px;position:relative;margin-bottom:8px;
+}
+ul.clean li:before{
+  content:"";position:absolute;left:0;top:7px;width:7px;height:7px;border-radius:50%;
+  background:var(--steel);
+}
+ul.tick li:before{
+  content:"\2713";background:none;color:var(--ok);font-size:13px;font-weight:bold;
+  width:auto;height:auto;top:-1px;left:0;border-radius:0;
+}
+ul.cross li:before{
+  content:"\2715";background:none;color:var(--stop);font-size:11.5px;font-weight:bold;
+  width:auto;height:auto;top:1px;left:0;border-radius:0;
+}
+.chip{
+  display:inline-block;font-size:11px;font-weight:bold;letter-spacing:.7px;text-transform:uppercase;
+  padding:4px 10px;border-radius:20px;
+}
+.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}
+.chip.future{background:var(--accent-soft);color:var(--accent)}
+.num{
+  width:25px;height:25px;border-radius:50%;background:var(--navy);color:#fff;
+  font-size:12.5px;font-weight:bold;display:flex;align-items:center;justify-content:center;
+  flex:0 0 25px;
+}
+
+/* ---------- flow pieces ---------- */
+.flowrow{display:flex;align-items:stretch;gap:9px}
+.node{
+  flex:1;background:#fff;border:1.5px solid var(--line);border-radius:9px;
+  padding:11px 12px;display:flex;flex-direction:column;justify-content:center;min-height:58px;
+}
+.node .nt{font-size:13.5px;font-weight:bold;color:var(--navy);line-height:1.25}
+.node .nd{font-size:11px;color:var(--muted);margin-top:3px;line-height:1.35}
+.node.fill{background:var(--navy);border-color:var(--navy)}
+.node.fill .nt{color:#fff}
+.node.fill .nd{color:#C3D2E8}
+.node.acc{background:var(--accent-soft);border-color:#E7CFAF}
+.node.acc .nt{color:var(--accent)}
+.node.acc .nd{color:#8A6233}
+.arrow{
+  display:flex;align-items:center;color:var(--faint);font-size:19px;flex:0 0 auto;line-height:1;
+}
+.vsep{display:flex;justify-content:center;color:var(--faint);font-size:17px;line-height:1;margin:5px 0}
+
+/* ---------- table ---------- */
+table.stack{width:100%;border-collapse:collapse;font-size:12.5px}
+table.stack th{
+  text-align:left;font-size:10.5px;letter-spacing:1.1px;text-transform:uppercase;
+  color:#fff;background:var(--navy);padding:9px 12px;font-weight:bold;
+}
+table.stack td{padding:7.5px 12px;border-bottom:1px solid var(--line);vertical-align:top;color:#25364F;line-height:1.4}
+table.stack tr:nth-child(even) td{background:var(--tint)}
+table.stack td.layer{font-weight:bold;color:var(--navy);white-space:nowrap}
+table.stack td.tech{color:var(--ink)}
+table.stack td.tech code{font-family:var(--mono);font-size:11.5px;color:var(--accent)}
+
+/* ---------- misc ---------- */
+.banner{
+  background:var(--ink);color:#fff;border-radius:10px;padding:15px 20px;
+  font-family:var(--serif);font-size:17px;line-height:1.45;
+}
+.callout{
+  background:var(--accent-soft);border:1px solid #E7CFAF;border-radius:10px;padding:14px 17px;
+}
+.callout .lbl{font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--accent);
+  font-weight:bold;margin-bottom:6px}
+.callout p{margin:0;font-size:14.5px;line-height:1.5;color:#3D2A15}
+.mono{font-family:var(--mono);font-size:12px}
+
+/* ---------- speaker notes ---------- */
+.notes{
+  background:#fff;border:1px solid var(--line);border-left:none;border-radius:10px;
+  padding:18px 22px;box-shadow:0 1px 6px rgba(14,30,56,.07);
+}
+.notes h4{
+  margin:0 0 9px;font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--accent);
+}
+.notes p{margin:0 0 9px;font-size:13.5px;line-height:1.62;color:#33465F}
+.notes p:last-child{margin-bottom:0}
+.notes .q{color:var(--navy);font-weight:bold}
+body.nonotes .notes{display:none}
+
+/* ---------- present mode ---------- */
+body.present{background:#0B1426;overflow:hidden}
+body.present .toolbar{background:#060C18}
+body.present .deck{padding:0;height:100vh;justify-content:center}
+body.present .notes{display:none}
+body.present .unit{display:none;width:auto}
+body.present .unit.active{display:block}
+body.present .slide{box-shadow:0 8px 50px rgba(0,0,0,.6)}
+
+@media print{
+  @page{size:1280px 720px;margin:0}
+  body{background:#fff}
+  .toolbar{display:none}
+  .deck{padding:0;gap:0}
+  .unit{width:1280px}
+  .scaler{height:720px !important}
+  .slide{transform:none !important;box-shadow:none;page-break-after:always}
+  .notes{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <span class="brand">LoanAssist — Capstone Deck</span>
+  <span class="hint">6 slides · 5–7 min</span>
+  <span class="spacer"></span>
+  <button id="btnNotes">Hide notes</button>
+  <button id="btnPresent">Present</button>
+  <span class="hint" id="navHint" style="display:none">← → to move · Esc to exit</span>
+</div>
+
+<div class="deck" id="deck">
+
+<!-- ============================== SLIDE 1 ============================== -->
+<div class="unit">
+ <div class="scaler"><div class="slide" id="s1">
+  <div class="pad">
+    <div class="eyebrow">Capstone · GenAI &amp; RAG · LoanAssist</div>
+    <h1>Loan Eligibility Assistant — Problem Statement</h1>
+    <div class="sub">Customers cannot easily read lending policy — and a generic LLM cannot be trusted to read it for them.</div>
+
+    <div style="display:grid;grid-template-columns:1.04fr 1fr;gap:26px;margin-top:26px">
+      <div>
+        <ul class="clean" style="margin-top:2px">
+          <li>Eligibility depends on <strong>many interacting rules</strong> — age, income, employment vintage, CIBIL score, obligations, tenure — and they differ for every loan product.</li>
+          <li>Policy documents are written for <strong>underwriters, not applicants</strong>; customers cannot map their own situation onto them.</li>
+          <li>FAQ and keyword search return <strong>documents, not answers</strong> to "does this apply to me?"</li>
+          <li>A generic LLM will <strong>invent thresholds</strong> — a confidently wrong income cut-off is a compliance problem, not a UX one.</li>
+          <li>Call centres absorb the gap, so <strong>routine eligibility questions consume agent time</strong>.</li>
+        </ul>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="callout">
+          <div class="lbl">Problem statement</div>
+          <p>Build a conversational GenAI assistant that answers eligibility questions with <strong>preliminary guidance grounded in approved lending policy</strong> — citing the exact rule behind every answer.</p>
+        </div>
+        <div style="background:var(--stop-soft);border:1px solid #E8C9C0;border-radius:10px;padding:13px 17px">
+          <span class="chip" style="background:#93321F;color:#fff">Explicitly not</span>
+          <p style="margin:9px 0 0;font-size:14px;line-height:1.5;color:#5E2417">
+            A final loan approval, sanction, or <strong>underwriting decision engine</strong>. Output is pre-qualification only, subject to verification and full credit assessment.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px">
+      <div style="font-size:11px;letter-spacing:1.3px;text-transform:uppercase;color:var(--faint);font-weight:bold;margin-bottom:9px">Where the gap appears</div>
+      <div class="flowrow">
+        <div class="node"><div class="nt">User</div><div class="nd">Considering a loan</div></div>
+        <div class="arrow">&#8594;</div>
+        <div class="node"><div class="nt">Eligibility question</div><div class="nd">"Do I qualify on ₹60,000 a month?"</div></div>
+        <div class="arrow">&#8594;</div>
+        <div class="node"><div class="nt">Policy is opaque</div><div class="nd">11 sections, 6 products, dozens of thresholds</div></div>
+        <div class="arrow">&#8594;</div>
+        <div class="node acc"><div class="nt">Needs a grounded assistant</div><div class="nd">Answers from policy, cites the rule, refuses to guess</div></div>
+      </div>
+    </div>
+
+    <div class="foot">Policy corpus in this project: <span class="mono">rag/eligibility_rules.md</span> — synthetic India-focused policy LPQ-2026-01, 6 loan products, rule-ID addressable (e.g. <span class="mono">PERSONAL-CREDIT-001</span>).</div>
+    <div class="pnum">01</div>
+  </div>
+ </div></div>
+ <div class="notes">
+  <h4>Speaker notes — about 60 seconds</h4>
+  <p>Start with the customer. Someone thinking about a personal loan has one question: "will I qualify?" Answering it properly means checking age, income, how long they have been employed, their CIBIL score, existing EMIs and the tenure they want — and every one of those thresholds changes depending on whether it is a home loan, an auto loan or a loan against property.</p>
+  <p>That information does exist, in the lending policy. But policy is written for underwriters. A customer reading it cannot tell which of eleven sections applies to them. Search does not fix this, because search returns documents and the customer asked a question about themselves.</p>
+  <p><span class="q">The obvious shortcut is to hand the question to ChatGPT — and that is exactly the trap.</span> A general model will happily state an income threshold. It will sound authoritative and it will be made up. In lending, a hallucinated threshold is a compliance and mis-selling issue.</p>
+  <p>So the problem I set myself was narrower and harder: ground every answer in the approved policy, and make the system cite the rule it used. Be clear about the boundary — this is pre-qualification guidance, never an approval decision.</p>
+ </div>
+</div>
+
+<!-- ============================== SLIDE 2 ============================== -->
+<div class="unit">
+ <div class="scaler"><div class="slide" id="s2">
+  <div class="pad">
+    <div class="eyebrow">Slide 02</div>
+    <h1>Scope &amp; Solution</h1>
+    <div class="sub">What the system does, what it deliberately does not do, and the one design decision everything follows from.</div>
+
+    <div style="display:grid;grid-template-columns:1.12fr 1fr;gap:24px;margin-top:22px">
+
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card">
+          <h3>In scope — implemented in the repository <span class="chip ok" style="margin-left:6px">Built</span></h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 18px">
+            <ul class="clean tick" style="margin:0">
+              <li>Conversational assistance with session memory</li>
+              <li>Clause-level policy retrieval from ChromaDB</li>
+              <li>RAG generation with <strong>verified rule-ID citations</strong></li>
+              <li>Local Qwen inference — no data leaves the host</li>
+              <li>FastAPI backend, buffered and streaming</li>
+            </ul>
+            <ul class="clean tick" style="margin:0">
+              <li>Input &amp; output guardrails, PII redaction</li>
+              <li>Prompt registry with versions v1 / v2</li>
+              <li>Structured decisions + per-session audit log</li>
+              <li>Prometheus metrics, provisioned Grafana</li>
+              <li>Docker Compose — 5 orchestrated services</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card" style="background:var(--stop-soft);border-color:#E8C9C0">
+          <h3 style="color:var(--stop)">Out of scope</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 18px">
+            <ul class="clean cross" style="margin:0">
+              <li>Final approval, sanction or underwriting</li>
+              <li>Automated / real-time credit decisioning</li>
+              <li>Core banking or LOS integration</li>
+            </ul>
+            <ul class="clean cross" style="margin:0">
+              <li>Live credit-bureau (CIBIL) lookup</li>
+              <li>Authentication — header sent, not enforced</li>
+              <li>Cloud deployment, Kubernetes, retraining</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:11px;letter-spacing:1.3px;text-transform:uppercase;color:var(--faint);font-weight:bold;margin-bottom:8px">Solution — request path</div>
+        <div style="display:flex;flex-direction:column">
+          <div class="node" style="min-height:0;padding:8px 12px"><div class="nt">User question</div></div>
+          <div class="vsep">&#8595;</div>
+          <div class="node" style="min-height:0;padding:8px 12px"><div class="nt">FastAPI — guarded &amp; routed</div></div>
+          <div class="vsep">&#8595;</div>
+          <div class="node acc" style="min-height:0;padding:8px 12px"><div class="nt">Retrieve policy clauses (ChromaDB)</div></div>
+          <div class="vsep">&#8595;</div>
+          <div class="node" style="min-height:0;padding:8px 12px"><div class="nt">Build prompt — versioned + retrieved rules</div></div>
+          <div class="vsep">&#8595;</div>
+          <div class="node fill" style="min-height:0;padding:8px 12px"><div class="nt">LiteLLM &#8594; local Qwen</div></div>
+          <div class="vsep">&#8595;</div>
+          <div class="node" style="min-height:0;padding:8px 12px"><div class="nt">Output guard + citation check</div></div>
+          <div class="vsep">&#8595;</div>
+          <div class="node" style="min-height:0;padding:8px 12px"><div class="nt">Grounded answer &#43; cited rules &#8594; user</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="banner" style="margin-top:18px">
+      Key decision: <strong>ground the answer in retrieved policy</strong> rather than in the model's internal knowledge — and drop any citation the model cannot prove.
+    </div>
+
+    <div class="pnum">02</div>
+  </div>
+ </div></div>
+ <div class="notes">
+  <h4>Speaker notes — about 60 seconds</h4>
+  <p>Scope first, because scope is what keeps a GenAI project honest. The system holds a real conversation, retrieves the policy clauses that apply, generates an answer grounded in them, runs it through guardrails, and returns a structured decision with citations. It runs locally, in containers, with metrics.</p>
+  <p>What it does not do matters just as much. It does not approve loans. It does not touch a core banking system or pull a real CIBIL score. It does not deploy to a cloud. And I want to be precise about one thing — the API key header is sent by the UI but it is not yet enforced in the API code, so this is not an authenticated service. I have listed that as future scope rather than claiming it.</p>
+  <p><span class="q">The single design decision behind everything is on the flow at the right:</span> the model is never asked what the eligibility rules are. It is handed the retrieved rules and asked to apply them. That turns an open-ended generation problem into a constrained reasoning problem — which is what makes the output defensible.</p>
+ </div>
+</div>
+
+<!-- ============================== SLIDE 3 ============================== -->
+<div class="unit">
+ <div class="scaler"><div class="slide" id="s3">
+  <div class="pad">
+    <div class="eyebrow">Slide 03</div>
+    <h1>Technical Architecture</h1>
+    <div class="sub">Every component shown below exists in the repository. Ports are the Docker Compose bindings.</div>
+
+    <div style="margin-top:20px;border:1px solid var(--line);border-radius:12px;padding:17px 18px 18px;background:var(--tint)">
+      <div style="font-size:11px;letter-spacing:1.3px;text-transform:uppercase;color:var(--navy);font-weight:bold;margin-bottom:12px">Application flow</div>
+
+      <div class="flowrow">
+        <div class="node" style="background:#fff"><div class="nt">Streamlit UI</div><div class="nd">chat_app.py · host :8501</div></div>
+        <div class="arrow">&#8594;</div>
+        <div class="node" style="background:#fff"><div class="nt">FastAPI</div><div class="nd">/ask · /ask/stream · :8001</div></div>
+        <div class="arrow">&#8594;</div>
+        <div class="node acc"><div class="nt">Input guardrails</div><div class="nd">Injection blocklist · PII scan · intent routing</div></div>
+      </div>
+
+      <div style="display:flex;justify-content:center;color:var(--faint);font-size:17px;margin:7px 0">&#8595;</div>
+
+      <div class="flowrow">
+        <div class="node" style="background:#fff"><div class="nt">RAG retrieval</div><div class="nd">Top-8 clauses · product filter</div></div>
+        <div class="arrow">&#8594;</div>
+        <div class="node" style="background:#fff"><div class="nt">ChromaDB</div><div class="nd">Embedded · all-MiniLM-L6-v2 · L2</div></div>
+        <div class="arrow">&#8594;</div>
+        <div class="node" style="background:#fff"><div class="nt">Retrieved policy context</div><div class="nd">Clause text + Rule IDs</div></div>
+        <div class="arrow">&#8594;</div>
+        <div class="node" style="background:#fff"><div class="nt">Prompt registry</div><div class="nd">registry.yaml · PROMPT_VERSION v1/v2</div></div>
+      </div>
+
+      <div style="display:flex;justify-content:center;color:var(--faint);font-size:17px;margin:7px 0">&#8595;</div>
+
+      <div class="flowrow">
+        <div class="node fill"><div class="nt">LiteLLM proxy</div><div class="nd">:4000 · retries · fallback route</div></div>
+        <div class="arrow">&#8594;</div>
+        <div class="node fill"><div class="nt">Qwen local model server</div><div class="nd">Qwen2.5-1.5B-Instruct · :8090</div></div>
+        <div class="arrow">&#8594;</div>
+        <div class="node acc"><div class="nt">Output guardrails</div><div class="nd">Blocklist · PII redaction · citation verification</div></div>
+        <div class="arrow">&#8594;</div>
+        <div class="node" style="background:#fff"><div class="nt">Response</div><div class="nd">answer · decision · citations</div></div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px">
+      <div style="font-size:11px;letter-spacing:1.3px;text-transform:uppercase;color:var(--faint);font-weight:bold;margin-bottom:9px">Supporting &amp; operational components</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:11px">
+        <div class="card" style="padding:12px 14px;background:#fff">
+          <div style="font-size:13.5px;font-weight:bold;color:var(--navy)">Docker Compose</div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:4px;line-height:1.4">Orchestrates 5 services with health checks. Streamlit runs on the host.</div>
+        </div>
+        <div class="card" style="padding:12px 14px;background:#fff">
+          <div style="font-size:13.5px;font-weight:bold;color:var(--navy)">Prometheus :9090</div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:4px;line-height:1.4">Scrapes <span class="mono">/metrics</span> — request counter and latency histogram.</div>
+        </div>
+        <div class="card" style="padding:12px 14px;background:#fff">
+          <div style="font-size:13.5px;font-weight:bold;color:var(--navy)">Grafana :3000</div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:4px;line-height:1.4">Provisioned golden-signals dashboard: traffic, p50/p95, error rate.</div>
+        </div>
+        <div class="card" style="padding:12px 14px;background:#fff">
+          <div style="font-size:13.5px;font-weight:bold;color:var(--navy)">promptfoo eval gate</div>
+          <div style="font-size:11.5px;color:var(--muted);margin-top:4px;line-height:1.4">Pre-push hook blocks regressions. CI workflow supplied as a template.<sup>&#8224;</sup></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot">ChromaDB is <strong>embedded in the API process</strong> (PersistentClient over a bind mount), not a separate container — in production this becomes a shared vector-database service. &nbsp;<sup>&#8224;</sup> The GitHub Actions workflow lives at <span class="mono">reference/github-actions-eval-gate.yml</span> and is copied into <span class="mono">.github/workflows/</span> to activate; Langfuse tracing is wired in and no-ops without keys.</div>
+    <div class="pnum">03</div>
+  </div>
+ </div></div>
+ <div class="notes">
+  <h4>Speaker notes — about 90 seconds</h4>
+  <p>Read the top band left to right. Streamlit is the UI and runs on the host; everything else is containerised. It calls FastAPI. <span class="q">FastAPI is here because it is async, and because Pydantic gives me a typed response contract</span> — decision, citations, confidence and refusal are schema fields, so a refusal is a normal 200 response with <span class="mono">refused: true</span>, never a 500.</p>
+  <p>Second row is the grounding. The question goes into ChromaDB. <span class="q">Chroma because the corpus is small and the index can be embedded in the API process</span> — zero extra infrastructure for a lab, and the interface is the same one a managed vector database would expose later. Ingestion splits the policy by clause rather than by fixed window, so one chunk is one citable rule with a stable Rule ID. Embeddings are all-MiniLM-L6-v2 running locally as ONNX — no embedding API calls, no cost, no data leaving the machine.</p>
+  <p>Third row generates. <span class="q">LiteLLM is the gateway because it decouples my code from the provider</span> — the API only ever speaks OpenAI protocol to one endpoint, and the config decides whether that is the local Qwen or a cloud fallback. Swapping models is a config change. <span class="q">Qwen 2.5 1.5B runs locally because applicant financial data should not leave the host</span>, and it is small enough to serve on CPU.</p>
+  <p>Around it: Compose for reproducible startup, Prometheus and Grafana for the golden signals, and a promptfoo gate. Two honest notes — Chroma is embedded rather than a service, and the CI workflow ships as a reference file you copy into <span class="mono">.github/workflows</span>; the local pre-push hook is the gate that actually runs today.</p>
+ </div>
+</div>
+
+<!-- ============================== SLIDE 4 ============================== -->
+<div class="unit">
+ <div class="scaler"><div class="slide" id="s4">
+  <div class="pad">
+    <div class="eyebrow">Slide 04</div>
+    <h1>End-to-End Workflow</h1>
+    <div class="sub">One question, traced through every layer of the system.</div>
+
+    <div class="callout" style="margin-top:18px;display:flex;align-items:center;gap:14px">
+      <span class="chip future" style="flex:0 0 auto">User asks</span>
+      <p style="font-size:16px"><em>"Am I eligible for a personal loan if my monthly income is ₹60,000?"</em></p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-top:16px">
+
+      <div class="card" style="padding:12px 14px;display:flex;gap:11px">
+        <div class="num">1</div>
+        <div><div style="font-size:13.5px;font-weight:bold;color:var(--navy)">User input</div>
+        <div style="font-size:11.5px;color:var(--muted);line-height:1.4;margin-top:3px">Typed into Streamlit; a session ID is attached so the conversation has memory.</div></div>
+      </div>
+
+      <div class="card" style="padding:12px 14px;display:flex;gap:11px">
+        <div class="num">2</div>
+        <div><div style="font-size:13.5px;font-weight:bold;color:var(--navy)">API request</div>
+        <div style="font-size:11.5px;color:var(--muted);line-height:1.4;margin-top:3px">POST to FastAPI with <span class="mono">X-Session-Id</span> and an <span class="mono">Idempotency-Key</span>.</div></div>
+      </div>
+
+      <div class="card" style="padding:12px 14px;display:flex;gap:11px">
+        <div class="num">3</div>
+        <div><div style="font-size:13.5px;font-weight:bold;color:var(--navy)">Validation &amp; guardrails</div>
+        <div style="font-size:11.5px;color:var(--muted);line-height:1.4;margin-top:3px">Injection blocklist, PII scan, then intent routing — chat vs. eligibility.</div></div>
+      </div>
+
+      <div class="card" style="padding:12px 14px;display:flex;gap:11px">
+        <div class="num">4</div>
+        <div><div style="font-size:13.5px;font-weight:bold;color:var(--navy)">Retrieval</div>
+        <div style="font-size:11.5px;color:var(--muted);line-height:1.4;margin-top:3px">Question embedded locally; top-8 clauses pulled from Chroma, filtered to <em>personal</em> + general.</div></div>
+      </div>
+
+      <div class="card" style="padding:12px 14px;display:flex;gap:11px">
+        <div class="num">5</div>
+        <div><div style="font-size:13.5px;font-weight:bold;color:var(--navy)">Context construction</div>
+        <div style="font-size:11.5px;color:var(--muted);line-height:1.4;margin-top:3px">Versioned system prompt + retrieved rules + recent turns + the question.</div></div>
+      </div>
+
+      <div class="card" style="padding:12px 14px;display:flex;gap:11px">
+        <div class="num">6</div>
+        <div><div style="font-size:13.5px;font-weight:bold;color:var(--navy)">LLM invocation</div>
+        <div style="font-size:11.5px;color:var(--muted);line-height:1.4;margin-top:3px">Sent through LiteLLM to <span class="mono">qwen-local</span>; two retries, then the configured fallback.</div></div>
+      </div>
+
+      <div class="card" style="padding:12px 14px;display:flex;gap:11px">
+        <div class="num">7</div>
+        <div><div style="font-size:13.5px;font-weight:bold;color:var(--navy)">Response generation</div>
+        <div style="font-size:11.5px;color:var(--muted);line-height:1.4;margin-top:3px">Qwen returns strict JSON — <span class="mono">decision</span>, <span class="mono">answer</span>, <span class="mono">citations</span>.</div></div>
+      </div>
+
+      <div class="card" style="padding:12px 14px;display:flex;gap:11px;background:var(--accent-soft);border-color:#E7CFAF">
+        <div class="num" style="background:var(--accent)">8</div>
+        <div><div style="font-size:13.5px;font-weight:bold;color:var(--accent)">Output guard &amp; citation check</div>
+        <div style="font-size:11.5px;color:#8A6233;line-height:1.4;margin-top:3px">PII masked, guarantee-language blocked, and <strong>any Rule ID not found in the policy is dropped</strong>.</div></div>
+      </div>
+
+      <div class="card" style="padding:12px 14px;display:flex;gap:11px">
+        <div class="num">9</div>
+        <div><div style="font-size:13.5px;font-weight:bold;color:var(--navy)">Return &amp; observe</div>
+        <div style="font-size:11.5px;color:var(--muted);line-height:1.4;margin-top:3px">UI renders badge + sources; counters and latency go to Prometheus &#8594; Grafana; a redacted audit line is written.</div></div>
+      </div>
+    </div>
+
+    <div style="margin-top:15px;background:var(--ink);border-radius:10px;padding:13px 18px;display:flex;align-items:center;gap:18px">
+      <div style="flex:0 0 auto">
+        <div style="font-size:10px;letter-spacing:1.3px;text-transform:uppercase;color:#8FA6C6;font-weight:bold">Result for this question</div>
+        <div style="font-size:16px;font-weight:bold;color:#fff;margin-top:4px;font-family:var(--serif)">NEEDS_INFORMATION</div>
+      </div>
+      <div style="flex:1;font-size:12.5px;color:#C3D2E8;line-height:1.5">
+        ₹60,000 clears the ₹20,000 personal-loan minimum — but age, employment vintage and CIBIL are still unknown, so no criterion has <em>failed</em> and none can be confirmed. The system asks rather than guesses.
+        <span class="mono" style="display:block;margin-top:5px;color:#9FB6D4">citations: ["PERSONAL-INCOME-001"] · refused: false · prompt_version: "v1"</span>
+      </div>
+    </div>
+
+    <div class="pnum">04</div>
+  </div>
+ </div></div>
+ <div class="notes">
+  <h4>Speaker notes — about 90 seconds</h4>
+  <p>Let me walk one real question through. The customer types it into Streamlit, which attaches a session ID so follow-up messages keep context, and an idempotency key so a retry cannot double-process.</p>
+  <p>Guardrails run before the model sees anything. That ordering is deliberate — an injection attempt is cheaper to stop at the boundary than to clean up afterwards. The same layer routes intent: casual chat does not need retrieval, an eligibility question does.</p>
+  <p>Retrieval detects that this is a personal loan and restricts the search to personal-loan clauses plus the general decision rules, so home-loan thresholds cannot contaminate the answer. Those clauses, the versioned system prompt and the recent conversation are assembled into the context. The call goes out through LiteLLM, which retries and can fall back if the local model is down.</p>
+  <p><span class="q">Step eight is the part I am most pleased with.</span> The model returns citations, and I do not trust them. Every Rule ID is looked up in Chroma, and anything that does not resolve to a real clause is discarded. The model cannot invent a citation, because an invented one never survives.</p>
+  <p>And look at the answer. Sixty thousand rupees clears the personal-loan income floor — but the policy also requires age, employment history and a CIBIL score, and it has none of those. Nothing has failed, so it cannot say no; nothing is confirmed, so it must not say yes. It returns NEEDS_INFORMATION and asks. <span class="q">That refusal to guess is the whole point of the project.</span></p>
+ </div>
+</div>
+
+<!-- ============================== SLIDE 5 ============================== -->
+<div class="unit">
+ <div class="scaler"><div class="slide" id="s5">
+  <div class="pad">
+    <div class="eyebrow">Slide 05</div>
+    <h1>Technology Stack</h1>
+    <div class="sub">Versions read directly from <span class="mono">requirements.txt</span>, <span class="mono">docker-compose.yml</span> and the model server configuration.</div>
+
+    <table class="stack" style="margin-top:19px">
+      <tr><th style="width:15%">Layer</th><th style="width:31%">Technology</th><th>Why it is used</th></tr>
+      <tr><td class="layer">Frontend</td><td class="tech">Streamlit — <code>ui/chat_app.py</code>, :8501</td><td>Conversational UI with streamed tokens, decision badges and an expandable policy-source panel.</td></tr>
+      <tr><td class="layer">Backend / API</td><td class="tech">FastAPI 0.115.6 + Uvicorn, :8001</td><td>Async orchestration and a typed contract — refusals and decisions are schema fields, not error codes.</td></tr>
+      <tr><td class="layer">RAG store</td><td class="tech">ChromaDB 1.5.9 — embedded PersistentClient</td><td>Clause-level retrieval with metadata filtering by loan product; no extra service to operate.</td></tr>
+      <tr><td class="layer">Embeddings</td><td class="tech">all-MiniLM-L6-v2 (Chroma default, ONNX ~80 MB)</td><td>Semantic matching of a customer's wording to policy language — runs locally, no API cost.</td></tr>
+      <tr><td class="layer">LLM</td><td class="tech">Qwen2.5-1.5B-Instruct via Transformers, CPU</td><td>Grounded generation with applicant data never leaving the host; small enough to serve without a GPU.</td></tr>
+      <tr><td class="layer">Model server</td><td class="tech">Custom OpenAI-compatible FastAPI shim, :8090</td><td>Makes the local model a drop-in OpenAI endpoint, including SSE streaming.</td></tr>
+      <tr><td class="layer">Model gateway</td><td class="tech">LiteLLM <code>main-stable</code>, :4000</td><td>Provider abstraction, 2 retries, and a configured fallback from <code>qwen-local</code> to a cloud route.</td></tr>
+      <tr><td class="layer">Prompt mgmt</td><td class="tech"><code>prompts/registry.yaml</code> + <code>loader.py</code></td><td>Prompts are versioned artifacts with owner and changelog; promoting v2 is an env change, not a code edit.</td></tr>
+      <tr><td class="layer">Guardrails</td><td class="tech"><code>api/guardrails.py</code> + <code>redact.py</code></td><td>Injection blocklist and topic gate in; guarantee-language blocklist, PII masking and citation verification out.</td></tr>
+      <tr><td class="layer">Containers</td><td class="tech">Docker Compose — 5 health-checked services</td><td>Reproducible startup with correct dependency ordering; the model image pre-bakes its weights.</td></tr>
+      <tr><td class="layer">Monitoring</td><td class="tech">prometheus-client 0.21.1 + Prometheus 2.53.0</td><td>Request counter and latency histogram exposed at <code>/metrics</code> and scraped every 5s.</td></tr>
+      <tr><td class="layer">Dashboards</td><td class="tech">Grafana 11.1.0, provisioned as code</td><td>Golden signals — traffic, p50/p95 latency and error percentage — available on first boot.</td></tr>
+      <tr><td class="layer">Evaluation</td><td class="tech">promptfoo — <code>promptfooconfig.yaml</code>, pre-push hook</td><td>Asserts decision states and injection safety before a push is allowed; CI workflow ships as a template.</td></tr>
+    </table>
+
+    <div class="foot" style="right:60px">Python 3.11 throughout. Langfuse tracing is integrated as an optional drop-in and degrades to a no-op when keys are absent. Cloud provider routes for Azure, Bedrock and Vertex exist in <span class="mono">litellm/config.yaml</span> as commented examples only — they are not configured.</div>
+    <div class="pnum">05</div>
+  </div>
+ </div></div>
+ <div class="notes">
+  <h4>Speaker notes — about 75 seconds</h4>
+  <p>Do not read this table out. Pick the four choices a reviewer will challenge.</p>
+  <p><span class="q">Why RAG rather than fine-tuning?</span> Because lending policy changes, and when it does I re-run ingestion — I do not retrain a model. Retrieval also gives me something fine-tuning cannot: the specific clause behind each answer, which is what makes the output auditable.</p>
+  <p><span class="q">Why ChromaDB?</span> The corpus is one policy document, so an embedded persistent index is the honest choice — no server to run. It keeps the same query interface a managed vector database would give me, so the migration path is open.</p>
+  <p><span class="q">Why a local Qwen?</span> Applicant income and credit data are exactly the kind of thing you do not send to a third-party API by default. A 1.5B instruct model is small enough to run on CPU and capable enough for constrained reasoning when the rules are supplied to it.</p>
+  <p><span class="q">Why LiteLLM in front of it?</span> So the application never knows which provider answered. My code makes one OpenAI-shaped call to one endpoint; the config decides the rest, and if the local container is down the request can fall back instead of failing.</p>
+  <p>One caveat worth owning: the commented Azure, Bedrock and Vertex entries in the LiteLLM config are examples, not configured deployments.</p>
+ </div>
+</div>
+
+<!-- ============================== SLIDE 6 ============================== -->
+<div class="unit">
+ <div class="scaler"><div class="slide" id="s6">
+  <div class="pad">
+    <div class="eyebrow">Slide 06</div>
+    <h1>Key Takeaways &amp; Future Enhancements</h1>
+    <div class="sub">What is built and running today, and what a production version would require next.</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1.25fr;gap:24px;margin-top:22px">
+
+      <div class="card" style="background:var(--ok-soft);border-color:#C6DFD0">
+        <h3 style="color:var(--ok)">Demonstrated today <span class="chip ok" style="margin-left:6px">Implemented</span></h3>
+        <ul class="clean tick" style="margin-top:10px">
+          <li><strong>RAG-grounded generation</strong> — answers derived from retrieved policy, not model memory</li>
+          <li><strong>Verified citations</strong> — unresolvable Rule IDs are discarded before the response leaves</li>
+          <li><strong>Local LLM inference</strong> — applicant data never leaves the host</li>
+          <li><strong>Typed API contract</strong> — decisions and refusals are first-class fields</li>
+          <li><strong>Prompt versioning</strong> — registry with owner, date and changelog; v1 / v2 canary</li>
+          <li><strong>Two-sided guardrails</strong> with PII redaction on input and output</li>
+          <li><strong>Containerised deployment</strong> — five health-checked services</li>
+          <li><strong>Observability</strong> — Prometheus metrics, Grafana golden signals, audit log</li>
+          <li><strong>Automated evaluation</strong> — promptfoo gate blocks regressions before push</li>
+        </ul>
+      </div>
+
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px">
+          <span class="chip future">Future scope — not implemented</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">
+          <div class="card" style="padding:13px 15px">
+            <h3 style="font-size:13.5px">Integration &amp; security</h3>
+            <ul class="clean" style="margin-top:7px">
+              <li style="font-size:12.5px;margin-bottom:6px">Core banking / LOS integration</li>
+              <li style="font-size:12.5px;margin-bottom:6px">Live credit-bureau lookup</li>
+              <li style="font-size:12.5px;margin-bottom:6px">Authentication &amp; role-based access</li>
+              <li style="font-size:12.5px;margin-bottom:6px">Managed secrets, not <span class="mono">.env</span></li>
+              <li style="font-size:12.5px;margin-bottom:0">NER-based PII protection</li>
+            </ul>
+          </div>
+          <div class="card" style="padding:13px 15px">
+            <h3 style="font-size:13.5px">Evaluation &amp; quality</h3>
+            <ul class="clean" style="margin-top:7px">
+              <li style="font-size:12.5px;margin-bottom:6px">Labelled retrieval-quality set</li>
+              <li style="font-size:12.5px;margin-bottom:6px">Response-quality &amp; groundedness scoring</li>
+              <li style="font-size:12.5px;margin-bottom:6px">Human-in-the-loop review</li>
+              <li style="font-size:12.5px;margin-bottom:6px">Activate the CI gate in <span class="mono">.github/</span></li>
+              <li style="font-size:12.5px;margin-bottom:0">Prompt-version rollback on regression</li>
+            </ul>
+          </div>
+          <div class="card" style="padding:13px 15px">
+            <h3 style="font-size:13.5px">Scale &amp; deployment</h3>
+            <ul class="clean" style="margin-top:7px">
+              <li style="font-size:12.5px;margin-bottom:6px">Cloud deployment, horizontal scaling</li>
+              <li style="font-size:12.5px;margin-bottom:6px">Vector DB as a shared service</li>
+              <li style="font-size:12.5px;margin-bottom:6px">Shared session &amp; idempotency store</li>
+              <li style="font-size:12.5px;margin-bottom:0">GPU serving for a larger model</li>
+            </ul>
+          </div>
+          <div class="card" style="padding:13px 15px">
+            <h3 style="font-size:13.5px">Governance</h3>
+            <ul class="clean" style="margin-top:7px">
+              <li style="font-size:12.5px;margin-bottom:6px">Durable, tamper-evident audit logging</li>
+              <li style="font-size:12.5px;margin-bottom:6px">Retrieval-quality monitoring in Grafana</li>
+              <li style="font-size:12.5px;margin-bottom:6px">Policy-change review workflow</li>
+              <li style="font-size:12.5px;margin-bottom:0">Model &amp; prompt approval sign-off</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="banner" style="margin-top:20px;text-align:center">
+      The solution demonstrates how <strong>RAG, LLMs and MLOps practices</strong> combine to build a policy-grounded GenAI application.
+    </div>
+
+    <div class="pnum">06</div>
+  </div>
+ </div></div>
+ <div class="notes">
+  <h4>Speaker notes — about 60 seconds, then invite questions</h4>
+  <p>To close: the left column is what actually runs. The pieces I would point to are grounded generation with verified citations, a local model so applicant data stays put, prompts treated as versioned artifacts rather than strings in code, guardrails on both sides of the model, and enough observability to know when it degrades.</p>
+  <p>The right column is explicitly future scope — none of it is built. The honest gaps are the ones I would fix first: there is no authentication yet, the CI workflow is supplied as a template rather than active, and evaluation covers a handful of assertions rather than a labelled quality set.</p>
+  <p>What I would emphasise to a production team is that the architecture already has the right seams. The vector store is embedded but speaks the interface a managed service would. The model sits behind a gateway, so swapping it is configuration. Prompts are released through an environment variable. <span class="q">None of the next steps require rewriting the application — they replace components behind interfaces that already exist.</span></p>
+  <p>And the boundary holds throughout: this is preliminary eligibility guidance, cited to policy, never an approval. Happy to take questions.</p>
+ </div>
+</div>
+
+</div>
+
+<script>
+(function(){
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.unit'));
+  var idx = 0;
+
+  function fit(){
+    slides.forEach(function(u){
+      var sc = u.querySelector('.scaler');
+      var sl = u.querySelector('.slide');
+      var avail = document.body.classList.contains('present')
+        ? Math.min(window.innerWidth - 40, (window.innerHeight - 90) * (1280/720))
+        : u.clientWidth;
+      var k = avail / 1280;
+      sl.style.transform = 'scale(' + k + ')';
+      sc.style.height = (720 * k) + 'px';
+      sc.style.width = (1280 * k) + 'px';
+      sc.style.margin = document.body.classList.contains('present') ? '0 auto' : '0';
+    });
+  }
+
+  function show(i){
+    idx = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach(function(u, n){ u.classList.toggle('active', n === idx); });
+    fit();
+  }
+
+  document.getElementById('btnNotes').addEventListener('click', function(){
+    document.body.classList.toggle('nonotes');
+    this.textContent = document.body.classList.contains('nonotes') ? 'Show notes' : 'Hide notes';
+    fit();
+  });
+
+  var btnP = document.getElementById('btnPresent');
+  var hint = document.getElementById('navHint');
+  function enter(){
+    document.body.classList.add('present');
+    btnP.textContent = 'Exit';
+    hint.style.display = 'inline';
+    show(idx);
+  }
+  function exit(){
+    document.body.classList.remove('present');
+    btnP.textContent = 'Present';
+    hint.style.display = 'none';
+    slides.forEach(function(u){ u.classList.remove('active'); });
+    fit();
+    slides[idx].scrollIntoView({block:'start'});
+  }
+  btnP.addEventListener('click', function(){
+    document.body.classList.contains('present') ? exit() : enter();
+  });
+
+  document.addEventListener('keydown', function(e){
+    if(!document.body.classList.contains('present')) return;
+    if(e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown'){ e.preventDefault(); show(idx+1); }
+    else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); show(idx-1); }
+    else if(e.key === 'Escape'){ exit(); }
+  });
+
+  window.addEventListener('resize', fit);
+  fit();
+})();
+</script>
+</body>
+</html>
